@@ -1,0 +1,39 @@
+{
+  "name": "blockchain_wallet_backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Infolanze807/BlockChain_Wallet_Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Infolanze807/BlockChain_Wallet_Backend/issues"
+  },
+  "homepage": "https://github.com/Infolanze807/BlockChain_Wallet_Backend#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.2.2",
+    "ethers": "^6.15.0",
+    "express": "^5.1.0",
+    "joi": "^18.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.0",
+    "nodemailer": "^7.0.6",
+    "tronweb": "^6.0.4",
+    "uuid": "^11.1.0"
+  }
+}
