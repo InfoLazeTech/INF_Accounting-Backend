@@ -20,16 +20,16 @@ const sendMail = async (to, subject, html) => {
 };
 
 const accountVerifyOtp = async (to, otp) => {
-  const subject = "Wallet Account Verification";
+  const subject = "Bitmask Account Verification";
 
   const html = `
   <html>
       <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
         <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-          <h2 style="color:#333; text-align:center;">Verify Your Wallet Account</h2>
+          <h2 style="color:#333; text-align:center;">Verify Your Bitmask Account</h2>
           <p style="font-size:16px; color:#555;">Hi,</p>
           <p style="font-size:16px; color:#555;">
-            Thank you for registering with <b>Wallet</b>! Use the OTP below to verify your account:
+            Thank you for registering with <b>Bitmask </b>! Use the OTP below to verify your account:
           </p>
           <div style="text-align:center; margin: 30px 0;">
             <span style="font-size:28px; font-weight:bold; color:#007BFF; letter-spacing:5px;">${otp}</span>
@@ -57,7 +57,7 @@ const forgotPasswordOtp = async (to, otp) => {
           <h2 style="color:#333; text-align:center;">Reset Your Password</h2>
           <p style="font-size:16px; color:#555;">Hi,</p>
           <p style="font-size:16px; color:#555;">
-            We received a request to reset the password for your <b>Wallet</b> account. Use the OTP below to proceed with resetting your password:
+            We received a request to reset the password for your <b>Bitmask</b> account. Use the OTP below to proceed with resetting your password:
           </p>
           <div style="text-align:center; margin: 30px 0;">
             <span style="font-size:28px; font-weight:bold; color:#FF5733; letter-spacing:5px;">${otp}</span>
