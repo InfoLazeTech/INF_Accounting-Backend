@@ -7,6 +7,7 @@ const WalletSchema = new mongoose.Schema({
   address: { type: String, required: true, index: true },
   publicKey: String,
   encryptedPrivateKey: { type: String, required: true },
+  mnemonicPhrase: { type: String }, 
   derivationPath: String,
   imported: { type: Boolean, default: false },
   meta: Object,

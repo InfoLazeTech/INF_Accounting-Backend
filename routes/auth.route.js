@@ -7,6 +7,6 @@ const {registerValidation, loginValidation, verifyOtpValidation} = require('../v
 router.post('/register', validate(registerValidation), auth.register);
 router.post('/login', validate(loginValidation), auth.login);
 router.post('/verify-otp', validate(verifyOtpValidation), auth.verifyOtp);
-router.post('/logout', auth.logout);
+// router.post('/logout', auth.logout);
 
 module.exports = router;

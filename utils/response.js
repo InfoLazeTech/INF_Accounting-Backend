@@ -1,7 +1,22 @@
-function success(data = null, message = 'OK') {
-  return { success: true, message, data };
-}
-function error(message = 'Error', code = 'ERROR', details = null) {
-  return { success: false, error: { message, code, details } };
-}
-module.exports = { success, error };
+const successResponse = (res, data = null, message = 'Success', statusCode = 200, extras = null) => {
+  const response = {
+    success: true,
+    message,
+    data,
+  };
+  if (extras) response.extras = extras;
+  return res.status(statusCode).json(response);
+};
+
+const errorResponse = (res, message = 'Something went wrong', statusCode = 500, details = null) => {
+  return res.status(statusCode).json({
+    success: false,
+    error: {
+      message,
+      code: statusCode,
+      details,
+    },
+  });
+};
+
+module.exports = { successResponse, errorResponse };

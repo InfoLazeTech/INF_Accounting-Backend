@@ -10,13 +10,41 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-async function sendMail(to, subject, text) {
+const sendMail= async (to, subject, html) => {
   return transporter.sendMail({
     from: process.env.SMTP_USER,
     to,
     subject,
-    text
+    html
   });
-}
+};
 
-module.exports = { sendMail };
+const accountOtp = async (to,otp) => {
+  const subject = "Wallet Account Verification";
+
+  const html = `
+  <html>
+      <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+        <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+          <h2 style="color:#333; text-align:center;">Verify Your Wallet Account</h2>
+          <p style="font-size:16px; color:#555;">Hi,</p>
+          <p style="font-size:16px; color:#555;">
+            Thank you for registering with <b>Wallet</b>! Use the OTP below to verify your account:
+          </p>
+          <div style="text-align:center; margin: 30px 0;">
+            <span style="font-size:28px; font-weight:bold; color:#007BFF; letter-spacing:5px;">${otp}</span>
+          </div>
+          <p style="font-size:16px; color:#555;">
+            This OTP is valid for <b>5 minutes</b>. Do not share this code with anyone.
+          </p>
+          <p style="font-size:14px; color:#999; text-align:center;">
+            If you did not request this verification, please ignore this email.
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
+  return sendMail(to, subject , html);
+};
+
+module.exports = { sendMail ,accountOtp};

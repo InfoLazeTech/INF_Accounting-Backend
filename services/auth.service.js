@@ -1,7 +1,7 @@
 const User = require("../models/user.model");
 const { generateToken } = require("../config/jwt");
 const crypto = require("crypto");
-const { sendMail } = require("../utils/email");
+const {  accountOtp } = require("../utils/email");
 const { mongoose } = require('../config/db');
 
 const register = async (email, password) => {
@@ -26,12 +26,7 @@ const register = async (email, password) => {
   await user.save({ session });
 
   // Send email
-await sendMail(
-  email, 
-  "Account Verification", 
-  `Please use the following OTP to verify your Wallet account: ${otp}`
-);
-
+await accountOtp(email, otp)
 
   await session.commitTransaction();
   session.endSession();
