@@ -139,7 +139,7 @@ const listUserWallets = async (userId) => {
     .select('_id email') // select fields you want for user
     .populate({
       path: 'wallets',
-      select: '_id address network imported', // only these wallet fields
+      select: '_id address network imported encryptedPrivateKey mnemonicPhrase', // only these wallet fields
       populate: { path: 'network', select: 'key name' } // optional: include network info
     })
     .lean();

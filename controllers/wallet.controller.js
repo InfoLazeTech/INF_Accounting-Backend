@@ -28,7 +28,7 @@ const createWallet = catchAsync(async (req, res) => {
 
 const list = catchAsync(async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user.userId;
     const wallets = await walletService.listUserWallets(userId);
     return successResponse(res, wallets, 'Wallets of user retrieved', 200);
   } catch (error) {
