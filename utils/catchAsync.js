@@ -1,8 +1,8 @@
-const { error } = require('./response'); // adjust path if needed
+const { errorResponse } = require("./response"); // adjust path if needed
 
 const catchAsync = (fn) => (req, res) => {
   Promise.resolve(fn(req, res)).catch((err) => {
-    return error(res, err.message || 'Something went wrong', 500, err);
+    return errorResponse(res, err.message || "Something went wrong", 500, err);
   });
 };
 

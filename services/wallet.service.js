@@ -1,20 +1,34 @@
-const { mongoose } = require('../config/db');
-const Wallet = require('../models/wallet.model');
-const User = require('../models/user.model');
-const Network = require('../models/network.model');
-const { encrypt } = require('../utils/crypto');
-const bsc = require('./bsc.service');
-const tron = require('./tron.service');
+const { mongoose } = require("../config/db");
+const Wallet = require("../models/wallet.model");
+const User = require("../models/user.model");
+const Network = require("../models/network.model");
+const { encrypt } = require("../utils/crypto");
+const bsc = require("./bsc.service");
+const tron = require("./tron.service");
 
 const ensureNetworks = async () => {
   const defs = [
-    { key: 'bsc', name: 'BNB Smart Chain', chainId: Number(process.env.BSC_CHAIN_ID || 56), rpcUrl: process.env.BSC_RPC },
-    { key: 'tron', name: 'Tron Network', chainId: null, rpcUrl: process.env.TRON_FULL_NODE }
+    {
+      key: "bsc",
+      name: "BNB Smart Chain",
+      chainId: Number(process.env.BSC_CHAIN_ID || 56),
+      rpcUrl: process.env.BSC_RPC,
+    },
+    {
+      key: "tron",
+      name: "Tron Network",
+      chainId: null,
+      rpcUrl: process.env.TRON_FULL_NODE,
+    },
   ];
   for (const n of defs) {
-    await Network.updateOne({ key: n.key }, { $setOnInsert: n }, { upsert: true });
+    await Network.updateOne(
+      { key: n.key },
+      { $setOnInsert: n },
+      { upsert: true }
+    );
   }
-}
+};
 
 const createDefaultWalletsForUser = async (userId) => {
   await ensureNetworks();
@@ -23,28 +37,28 @@ const createDefaultWalletsForUser = async (userId) => {
   try {
     // BSC
     const b = await bsc.createWallet();
-    
-    const netBsc = await Network.findOne({ key: 'bsc' }).session(session);
+
+    const netBsc = await Network.findOne({ key: "bsc" }).session(session);
     const wBsc = await new Wallet({
       user: userId,
       network: netBsc._id,
-      networkKey: 'bsc',
-      address: b.address,
+      networkKey: "bsc",
+      walletAddress: b.address,
       // encryptedPrivateKey: encrypt(b.privateKey),
       encryptedPrivateKey: b.privateKey,
       imported: false,
-      mnemonicPhrase: b.mnemonic
+      mnemonicPhrase: b.mnemonic,
     }).save({ session });
 
     // Tron
     const t = await tron.createWallet();
-    
-    const netTron = await Network.findOne({ key: 'tron' }).session(session);
+
+    const netTron = await Network.findOne({ key: "tron" }).session(session);
     const wTron = await new Wallet({
       user: userId,
       network: netTron._id,
-      networkKey: 'tron',
-      address: t.address,
+      networkKey: "tron",
+      walletAddress: t.address,
       publicKey: t.publicKey,
       // encryptedPrivateKey: encrypt(t.privateKey),
       encryptedPrivateKey: t.privateKey,
@@ -52,12 +66,11 @@ const createDefaultWalletsForUser = async (userId) => {
       // mnemonicPhrase: t.mnemonic
     }).save({ session });
 
-     await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       userId,
       { $push: { wallets: { $each: [wBsc._id, wTron._id] } } },
       { session }
     );
-
 
     await session.commitTransaction();
     session.endSession();
@@ -67,7 +80,7 @@ const createDefaultWalletsForUser = async (userId) => {
     session.endSession();
     throw e;
   }
-}
+};
 
 const createWalletForUser = async (userId, networkKey) => {
   await ensureNetworks(); // make sure networks exist
@@ -83,33 +96,31 @@ const createWalletForUser = async (userId, networkKey) => {
 
     if (networkKey === "bsc") {
       const b = await bsc.createWallet();
-      
+
       walletData = {
         user: userId,
         network: net._id,
         networkKey: "bsc",
-        address: b.address,
+        walletAddress: b.address,
         // encryptedPrivateKey: encrypt(b.privateKey),
         encryptedPrivateKey: b.privateKey,
         imported: false,
-        mnemonicPhrase: b.mnemonic
+        mnemonicPhrase: b.mnemonic,
       };
-
     } else if (networkKey === "tron") {
       const t = await tron.createWallet();
-      
+
       walletData = {
         user: userId,
         network: net._id,
         networkKey: "tron",
-        address: t.address,
+        walletAddress: t.address,
         publicKey: t.publicKey,
         encryptedPrivateKey: encrypt(t.privateKey),
         encryptedPrivateKey: t.privateKey,
         imported: false,
         // mnemonicPhrase: t.mnemonic
       };
-
     } else {
       throw new Error("Unsupported network");
     }
@@ -126,7 +137,6 @@ const createWalletForUser = async (userId, networkKey) => {
     session.endSession();
 
     return wallet;
-
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
@@ -136,22 +146,23 @@ const createWalletForUser = async (userId, networkKey) => {
 
 const listUserWallets = async (userId) => {
   const user = await User.findById(userId)
-    .select('_id email') // select fields you want for user
+    .select("_id email") // select fields you want for user
     .populate({
-      path: 'wallets',
-      select: '_id address network imported encryptedPrivateKey mnemonicPhrase', // only these wallet fields
-      populate: { path: 'network', select: 'key name' } // optional: include network info
+      path: "wallets",
+      select:
+        "_id walletAddress network imported encryptedPrivateKey mnemonicPhrase", // only these wallet fields
+      populate: { path: "network", select: "key name" }, // optional: include network info
     })
     .lean();
 
-  if (!user) throw new Error('User not found');
+  if (!user) throw new Error("User not found");
 
   return user;
-}
+};
 
 module.exports = {
   ensureNetworks,
   createDefaultWalletsForUser,
   createWalletForUser,
-  listUserWallets
+  listUserWallets,
 };
