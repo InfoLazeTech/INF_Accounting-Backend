@@ -7,6 +7,7 @@ const createDefaultWallets = catchAsync(async (req, res) => {
     const userId = req.user.userId;
     const wallets = await walletService.createDefaultWalletsForUser(userId);
     const CreatedWallets = wallets.map((w) => ({
+      _id: w._id,
       walletAddress: w.walletAddress, // handle whichever field exists
       networkKey: w.networkKey,
     }));
@@ -29,6 +30,7 @@ const createWallet = catchAsync(async (req, res) => {
 
     const wallet = await walletService.createWalletForUser(userId, networkKey);
     const CreatedWallet = {
+      _id: wallet._id,
       walletAddress: wallet.walletAddress,
       networkKey: wallet.networkKey,
     };
