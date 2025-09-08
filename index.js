@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 connectDB();
 
-app.use(routes);
+app.use('/',routes);
 
 app.get('/', (req, res) => {
   res.send("Backend of Wallet is running...")
