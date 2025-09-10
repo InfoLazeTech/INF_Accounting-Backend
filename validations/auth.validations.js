@@ -9,6 +9,7 @@ const registerValidation = Joi.object({
   password: Joi.string().required().messages({
     "string.empty": "Password is required",
   }),
+  name: Joi.string().optional(),
 });
 
 // Login validation

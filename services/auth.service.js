@@ -5,27 +5,38 @@ const { accountVerifyOtp, forgotPasswordOtp } = require("../utils/email");
 const { mongoose } = require("../config/db");
 const { createDefaultWalletsForUser } = require("./wallet.service");
 
-const register = async (email, password) => {
+const register = async (email, password, name) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const existing = await User.findOne({ email }).session(session);
-    if (existing) throw new Error("Email already registered");
+    let user = await User.findOne({ email }).session(session);
+
     const hash = await User.hashPassword(password);
 
-    // Generate OTP
     const otp = crypto.randomInt(100000, 999999).toString();
 
-    const user = new User({
-      email,
-      password: hash,
-      otp,
-      otpExpires: Date.now() + 5 * 60 * 1000, //5 Minutes
-    });
-
-    await user.save({ session });
-
+    if (user) {
+      if (user.isVerified) {
+        throw new Error("Email already registered");
+      }
+      // Update user details if not verified
+      user.password = hash;
+      user.name = name;
+      user.otp = otp;
+      user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+      await user.save({ session });
+    } else {
+      // Create new user
+      user = new User({
+        email,
+        password: hash,
+        name,
+        otp,
+        otpExpires: Date.now() + 5 * 60 * 1000,
+      });
+      await user.save({ session });
+    }
     // Send email
     await accountVerifyOtp(email, otp);
 

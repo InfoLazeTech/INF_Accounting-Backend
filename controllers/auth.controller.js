@@ -4,8 +4,8 @@ const catchAsync = require("../utils/catchAsync");
 
 const register = catchAsync(async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await authService.register(email, password);
+    const { email, password, name } = req.body;
+    const user = await authService.register(email, password, name);
     return successResponse(
       res,
       null,
