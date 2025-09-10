@@ -30,10 +30,10 @@ const ensureNetworks = async () => {
   }
 };
 
-const createDefaultWalletsForUser = async (userId) => {
+const createDefaultWalletsForUser = async (userId,session = null) => {
   await ensureNetworks();
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // const session = await mongoose.startSession();
+  // session.startTransaction();
   try {
     // BSC
     const b = await bsc.createWallet();
@@ -72,12 +72,12 @@ const createDefaultWalletsForUser = async (userId) => {
       { session }
     );
 
-    await session.commitTransaction();
-    session.endSession();
+    // await session.commitTransaction();
+    // session.endSession();
     return [wBsc, wTron];
   } catch (e) {
-    await session.abortTransaction();
-    session.endSession();
+    // await session.abortTransaction();
+    // session.endSession();
     throw e;
   }
 };

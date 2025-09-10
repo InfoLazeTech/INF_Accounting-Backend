@@ -3,28 +3,40 @@ const { generateToken } = require("../config/jwt");
 const crypto = require("crypto");
 const { accountVerifyOtp, forgotPasswordOtp } = require("../utils/email");
 const { mongoose } = require("../config/db");
+const { createDefaultWalletsForUser } = require("./wallet.service");
 
-const register = async (email, password) => {
+const register = async (email, password, name) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const existing = await User.findOne({ email }).session(session);
-    if (existing) throw new Error("Email already registered");
+    let user = await User.findOne({ email }).session(session);
+
     const hash = await User.hashPassword(password);
 
-    // Generate OTP
     const otp = crypto.randomInt(100000, 999999).toString();
 
-    const user = new User({
-      email,
-      password: hash,
-      otp,
-      otpExpires: Date.now() + 5 * 60 * 1000, //5 Minutes
-    });
-
-    await user.save({ session });
-
+    if (user) {
+      if (user.isVerified) {
+        throw new Error("Email already registered");
+      }
+      // Update user details if not verified
+      user.password = hash;
+      user.name = name;
+      user.otp = otp;
+      user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+      await user.save({ session });
+    } else {
+      // Create new user
+      user = new User({
+        email,
+        password: hash,
+        name,
+        otp,
+        otpExpires: Date.now() + 5 * 60 * 1000,
+      });
+      await user.save({ session });
+    }
     // Send email
     await accountVerifyOtp(email, otp);
 
@@ -54,11 +66,21 @@ const verifyOtp = async (email, otp) => {
     user.otp = null;
     user.otpExpires = null;
     await user.save({ session });
+    const wallets = await createDefaultWalletsForUser(user._id, session);
+    const CreatedWallets = wallets.map((w) => ({
+      _id: w._id,
+      walletAddress: w.walletAddress, // handle whichever field exists
+      networkKey: w.networkKey,
+    }));
 
     await session.commitTransaction();
     session.endSession();
 
-    return generateToken({ userId: user._id, email: user.email });
+    return {
+      token: generateToken({ userId: user._id, email: user.email }),
+      wallets:CreatedWallets,
+    };
+
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
@@ -71,17 +93,42 @@ const login = async (email, password) => {
   session.startTransaction();
 
   try {
-    const user = await User.findOne({ email }).session(session);
+    const user = await User.findOne({ email })
+    .populate({
+        path: "wallets",
+        select:"_id networkKey walletAddress"
+      })
+    .session(session);
     if (!user) throw new Error("User not found");
     if (!user.isVerified) throw new Error("Please verify email first");
 
     const ok = await user.verifyPassword(password);
     if (!ok) throw new Error("Invalid credentials");
 
+    const Findedwallets = user.wallets.map(w => ({
+      _id: w._id,
+      walletAddress:w.walletAddress,
+      networkKey: w.networkKey,
+    }));
+
+    const groupedWallets = Findedwallets.reduce((acc, wallet) => {
+  if (wallet.networkKey === 'bsc') {
+    acc.bscNetwork = acc.bscNetwork || [];
+    acc.bscNetwork.push(wallet);
+  } else if (wallet.networkKey === 'tron') {
+    acc.tronNetwork = acc.tronNetwork || [];
+    acc.tronNetwork.push(wallet);
+  }
+  return acc;
+}, {});
+
     await session.commitTransaction();
     session.endSession();
 
-    return generateToken({ userId: user._id, email: user.email });
+    return {
+      token:generateToken({ userId: user._id, email: user.email }),
+      wallets:groupedWallets
+    }
   } catch (err) {
     await session.abortTransaction();
     session.endSession();

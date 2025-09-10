@@ -4,8 +4,8 @@ const catchAsync = require("../utils/catchAsync");
 
 const register = catchAsync(async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await authService.register(email, password);
+    const { email, password, name } = req.body;
+    const user = await authService.register(email, password, name);
     return successResponse(
       res,
       null,
@@ -25,8 +25,8 @@ const register = catchAsync(async (req, res) => {
 const verifyOtp = catchAsync(async (req, res) => {
   try {
     const { email, otp } = req.body;
-    const token = await authService.verifyOtp(email, otp);
-    return successResponse(res, { token }, "Email verified successfully", 200);
+    const userData = await authService.verifyOtp(email, otp);
+    return successResponse(res, userData, "Email verified successfully", 200);
   } catch (error) {
     return errorResponse(
       res,
@@ -40,8 +40,8 @@ const verifyOtp = catchAsync(async (req, res) => {
 const login = catchAsync(async (req, res) => {
   try {
     const { email, password } = req.body;
-    const token = await authService.login(email, password);
-    return successResponse(res, { token }, "Logged in successfully", 200);
+    const userData = await authService.login(email, password);
+    return successResponse(res, userData, "Logged in successfully", 200);
   } catch (error) {
     return errorResponse(res, error.message || "Login failed", 500, error);
   }
@@ -71,7 +71,7 @@ const verifyOtpforPasswordforgot = catchAsync(async (req, res) => {
   try {
     const { email, otp } = req.body;
     const token = await authService.verifyOtpforPasswordforgot(email, otp);
-    return successResponse(res, { token }, "OTP verified successfully.", 200);
+    return successResponse(res, token, "OTP verified successfully.", 200);
   } catch (error) {
     return errorResponse(
       res,

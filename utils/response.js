@@ -2,8 +2,12 @@ const successResponse = (res, data = null, message = 'Success', statusCode = 200
   const response = {
     success: true,
     message,
-    data,
   };
+
+  if (data !== null) {
+    response.data = data;
+  }
+  
   if (extras) response.extras = extras;
   return res.status(statusCode).json(response);
 };
