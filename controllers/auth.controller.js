@@ -3,111 +3,44 @@ const authService = require("../services/auth.service");
 const catchAsync = require("../utils/catchAsync");
 
 const register = catchAsync(async (req, res) => {
-  try {
-    const { email, password, name } = req.body;
-    const user = await authService.register(email, password, name);
-    return successResponse(
-      res,
-      null,
-      "Registered. Check your email for OTP.",
-      200
-    );
-  } catch (error) {
-    return errorResponse(
-      res,
-      error.message || "Registration failed",
-      500,
-      error
-    );
-  }
-});
+  const { email, password, name, phone, companyName, gstNo, panNo } = req.body;
 
-const verifyOtp = catchAsync(async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const userData = await authService.verifyOtp(email, otp);
-    return successResponse(res, userData, "Email verified successfully", 200);
-  } catch (error) {
-    return errorResponse(
-      res,
-      error.message || "OTP verification failed",
-      500,
-      error
-    );
-  }
+  const { user, company } = await authService.register(
+    email,
+    password,
+    phone,
+    name,
+    companyName,
+    gstNo,
+    panNo
+  );
+
+  return successResponse(
+    res,
+    {
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+        password: user.password,
+        company: { _id: user.company },
+      },
+      company: {
+        _id: company._id,
+        companyName: company.companyName,
+        gstNo: company.gstNo,
+        panNo: company.panNo,
+      },
+    },
+    "Registered Successfully"
+  );
 });
 
 const login = catchAsync(async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const userData = await authService.login(email, password);
-    return successResponse(res, userData, "Logged in successfully", 200);
-  } catch (error) {
-    return errorResponse(res, error.message || "Login failed", 500, error);
-  }
+  const { email, password } = req.body;
+  const data = await authService.login(email, password);
+  return successResponse(res, data, "Logged in successfully");
 });
 
-const forgotPassword = catchAsync(async (req, res) => {
-  try {
-    const { email } = req.body;
-    const user = await authService.forgotPassword(email);
-    return successResponse(
-      res,
-      null,
-      "Password reset request successful. Please check your email for the OTP.",
-      200
-    );
-  } catch (error) {
-    return errorResponse(
-      res,
-      error.message || "Failed to process password reset request.",
-      500,
-      error
-    );
-  }
-});
-
-const verifyOtpforPasswordforgot = catchAsync(async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const token = await authService.verifyOtpforPasswordforgot(email, otp);
-    return successResponse(res, token, "OTP verified successfully.", 200);
-  } catch (error) {
-    return errorResponse(
-      res,
-      error.message || "OTP verification failed.",
-      500,
-      error
-    );
-  }
-});
-
-const resetPassword = catchAsync(async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { newPassword } = req.body;
-    const user = await authService.resetPassword(userId, newPassword);
-    return successResponse(
-      res,
-      null,
-      "Password has been reset successfully.",
-      200
-    );
-  } catch (error) {
-    return errorResponse(
-      res,
-      error.message || "Password reset failed.",
-      500,
-      error
-    );
-  }
-});
-
-module.exports = {
-  register,
-  login,
-  verifyOtp,
-  forgotPassword,
-  verifyOtpforPasswordforgot,
-  resetPassword,
-};
+module.exports = { register, login };

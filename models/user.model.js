@@ -2,15 +2,15 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, unique: true, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
   password: String,
-  name:String,
-  otp: String,
-  otpExpires: Date,
+  name: String,
   isVerified: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: false },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  wallets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Wallet" }],
 });
 
 userSchema.statics.hashPassword = async function (password) {

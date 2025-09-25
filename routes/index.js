@@ -3,9 +3,11 @@ const router = express.Router();
 const authToken = require("../middlewares/authToken");
 
 const authRoutes = require("./auth.route");
-const walletRoutes = require("./wallet.route");
+const companyRoutes = require("./company.route");
+const customerRoutes = require("./customer.routes");
 
 router.use("/auth", authRoutes);
-router.use("/wallets", authToken, walletRoutes);
+router.use("/company", companyRoutes);
+router.use("/customer", customerRoutes);
 
 module.exports = router;

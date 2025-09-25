@@ -1,30 +1,36 @@
 const User = require("../models/user.model");
+const Company = require("../models/company.model");
 const { generateToken } = require("../config/jwt");
-const crypto = require("crypto");
-const { accountVerifyOtp, forgotPasswordOtp } = require("../utils/email");
 const { mongoose } = require("../config/db");
-const { createDefaultWalletsForUser } = require("./wallet.service");
+const { createCompany } = require("./company.service");
 
-const register = async (email, password, name) => {
+const register = async (
+  email,
+  password,
+  phone,
+  name,
+  companyName,
+  gstNo,
+  panNo
+) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     let user = await User.findOne({ email }).session(session);
 
+    if (user && user.isVerified) {
+      throw new Error("Email already registered");
+    }
+
     const hash = await User.hashPassword(password);
 
-    const otp = crypto.randomInt(100000, 999999).toString();
-
     if (user) {
-      if (user.isVerified) {
-        throw new Error("Email already registered");
-      }
-      // Update user details if not verified
+      // Update existing (unverified) user
       user.password = hash;
       user.name = name;
-      user.otp = otp;
-      user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+      user.phone = phone;
+      user.isVerified = true;
       await user.save({ session });
     } else {
       // Create new user
@@ -32,55 +38,29 @@ const register = async (email, password, name) => {
         email,
         password: hash,
         name,
-        otp,
-        otpExpires: Date.now() + 5 * 60 * 1000,
+        phone,
+        isVerified: true,
+        isActive: false,
       });
       await user.save({ session });
     }
-    // Send email
-    await accountVerifyOtp(email, otp);
 
-    await session.commitTransaction();
-    session.endSession();
+    // Create company linked to user
+    const company = new Company({
+      companyName,
+      gstNo,
+      panNo,
+    });
+    await company.save({ session });
 
-    return user;
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    throw err;
-  }
-};
-
-const verifyOtp = async (email, otp) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const user = await User.findOne({ email }).session(session);
-    if (!user) throw new Error("User not found");
-    if (user.isVerified) throw new Error("Already verified");
-    if (user.otp !== otp || user.otpExpires < Date.now())
-      throw new Error("Invalid or expired OTP");
-
-    user.isVerified = true;
-    user.otp = null;
-    user.otpExpires = null;
+    user.company = company._id;
+    user.isActive = true;
     await user.save({ session });
-    const wallets = await createDefaultWalletsForUser(user._id, session);
-    const CreatedWallets = wallets.map((w) => ({
-      _id: w._id,
-      walletAddress: w.walletAddress, // handle whichever field exists
-      networkKey: w.networkKey,
-    }));
 
     await session.commitTransaction();
     session.endSession();
 
-    return {
-      token: generateToken({ userId: user._id, email: user.email }),
-      wallets:CreatedWallets,
-    };
-
+    return { user, company };
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
@@ -93,117 +73,19 @@ const login = async (email, password) => {
   session.startTransaction();
 
   try {
-    const user = await User.findOne({ email })
-    .populate({
-        path: "wallets",
-        select:"_id networkKey walletAddress"
-      })
-    .session(session);
+    const user = await User.findOne({ email }).populate("company").session(session);
     if (!user) throw new Error("User not found");
-    if (!user.isVerified) throw new Error("Please verify email first");
 
     const ok = await user.verifyPassword(password);
     if (!ok) throw new Error("Invalid credentials");
-
-    const Findedwallets = user.wallets.map(w => ({
-      _id: w._id,
-      walletAddress:w.walletAddress,
-      networkKey: w.networkKey,
-    }));
-
-    const groupedWallets = Findedwallets.reduce((acc, wallet) => {
-  if (wallet.networkKey === 'bsc') {
-    acc.bscNetwork = acc.bscNetwork || [];
-    acc.bscNetwork.push(wallet);
-  } else if (wallet.networkKey === 'tron') {
-    acc.tronNetwork = acc.tronNetwork || [];
-    acc.tronNetwork.push(wallet);
-  }
-  return acc;
-}, {});
 
     await session.commitTransaction();
     session.endSession();
 
     return {
-      token:generateToken({ userId: user._id, email: user.email }),
-      wallets:groupedWallets
-    }
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    throw err;
-  }
-};
-
-const forgotPassword = async (email) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const user = await User.findOne({ email }).session(session);
-    if (!user) throw new Error("User not found");
-
-    // Generate OTP
-    const otp = crypto.randomInt(100000, 999999).toString();
-
-    user.otp = otp;
-    user.otpExpires = Date.now() + 5 * 60 * 1000; //5 Minutes
-
-    await user.save({ session });
-
-    // Send email
-    await forgotPasswordOtp(email, otp);
-
-    await session.commitTransaction();
-    session.endSession();
-
-    return user;
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    throw err;
-  }
-};
-
-const verifyOtpforPasswordforgot = async (email, otp) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  try {
-    const user = await User.findOne({ email }).session(session);
-    if (!user) throw new Error("User not found");
-    if (user.otp !== otp || user.otpExpires < Date.now())
-      throw new Error("Invalid or expired OTP");
-    user.otp = null;
-    user.otpExpires = null;
-    await user.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
-
-    return generateToken({ userId: user._id, email: user.email });
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    throw err;
-  }
-};
-
-const resetPassword = async (userId, newPassword) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const user = await User.findOne({ _id: userId }).session(session);
-    if (!user) throw new Error("User not found");
-    const hash = await User.hashPassword(newPassword);
-
-    user.password = hash;
-    await user.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
-    return user;
+      token: generateToken({ userId: user._id, email: user.email }),
+      user: user.toObject(),
+    };
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
@@ -214,8 +96,4 @@ const resetPassword = async (userId, newPassword) => {
 module.exports = {
   register,
   login,
-  verifyOtp,
-  forgotPassword,
-  verifyOtpforPasswordforgot,
-  resetPassword,
 };
