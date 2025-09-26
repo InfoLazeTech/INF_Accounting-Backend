@@ -15,6 +15,8 @@ const companySchema = new mongoose.Schema({
     pinCode: { type: String },
     faxNumber: { type: String },
   },
+  logo: { type: String },
+  signature: { type: String },
 
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Counter = require("./counter.model");
 
 const addressSchema = new mongoose.Schema(
   {
@@ -13,6 +14,7 @@ const addressSchema = new mongoose.Schema(
 
 const customerVendorSchema = new mongoose.Schema(
   {
+    customerVendorId: { type: String, unique: true }, // CUS-00001
     type: {
       isCustomer: { type: Boolean, default: false },
       isVendor: { type: Boolean, default: false },
@@ -52,5 +54,21 @@ customerVendorSchema.pre("save", function (next) {
   next();
 });
 
-const CustomerVendor = mongoose.model("CustomerVendor", customerVendorSchema);
+customerVendorSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    const counter = await Counter.findByIdAndUpdate(
+      { _id: "customerVendorId" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    this.customerVendorId = `CUS-${String(counter.seq).padStart(5, "0")}`;
+  }
+  next();
+});
+
+const CustomerVendor = mongoose.model(
+  "CustomerVendor",
+  customerVendorSchema
+);
 module.exports = CustomerVendor;
