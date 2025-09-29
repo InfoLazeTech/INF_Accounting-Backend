@@ -24,7 +24,7 @@ const register = catchAsync(async (req, res) => {
         name: user.name,
         phone: user.phone,
         password: user.password,
-        company: { _id: user.company },
+        // company: { _id: user.company },
       },
       company: {
         _id: company._id,
@@ -46,7 +46,10 @@ const login = catchAsync(async (req, res) => {
     message: "Logged in successfully",
     token,
     data: {
-      user, 
+       user: {
+        ...user,
+        company: user.company || null, // <-- include company object
+      },
     },
   });
 });
