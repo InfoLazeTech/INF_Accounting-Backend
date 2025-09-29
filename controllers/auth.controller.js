@@ -26,6 +26,7 @@ const register = catchAsync(async (req, res) => {
         password: user.password,
         // company: { _id: user.company },
       },
+      
       company: {
         _id: company._id,
         companyName: company.companyName,
