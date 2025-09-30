@@ -4,6 +4,11 @@ const Counter = require("./counter.model");
 const itemSchema = new mongoose.Schema(
   {
     itemId: { type: String, unique: true },
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+      required: true,
+    },
     sku: { type: String, unique: true, required: true },
     name: { type: String, required: true },
     description: { type: String },
