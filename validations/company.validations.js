@@ -1,17 +1,14 @@
 const Joi = require("joi");
 
-const companyValidation = Joi.object({
+const companyUpdateValidation = Joi.object({
   companyName: Joi.string().required().messages({
-    "string.empty": "Company name is required",
+    "string.empty": "Company name is required and cannot be removed",
   }),
   gstNo: Joi.string().required().messages({
-    "string.empty": "GST No is required",
+    "string.empty": "GST No is required and cannot be removed",
   }),
   panNo: Joi.string().required().messages({
-    "string.empty": "PAN No is required",
-  }),
-  user: Joi.string().required().messages({
-    "string.empty": "User ID is required",
+    "string.empty": "PAN No is required and cannot be removed",
   }),
   termsAndConditions: Joi.string().optional(),
   address: Joi.object({
@@ -22,6 +19,8 @@ const companyValidation = Joi.object({
     pinCode: Joi.string().optional(),
     faxNumber: Joi.string().optional(),
   }).optional(),
+  logo: Joi.string().optional(),
+  signature: Joi.string().optional(),
 });
 
-module.exports = { companyValidation };
+module.exports = { companyUpdateValidation };

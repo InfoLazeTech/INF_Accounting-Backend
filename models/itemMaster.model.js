@@ -31,16 +31,18 @@ const itemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Auto-increment itemId
 itemSchema.pre("save", async function (next) {
   if (this.isNew) {
+    if (!this.companyId)
+      return next(new Error("Company ID is required for item"));
+    const counterId = `itemId_${this.companyId.toString()}`;
+
     const counter = await Counter.findByIdAndUpdate(
-      { _id: "itemId" },
+      { _id: counterId },
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
 
-    // Zero-padded to 5 digits: I-00001, I-00002, ...
     this.itemId = `I-${String(counter.seq).padStart(5, "0")}`;
   }
   next();

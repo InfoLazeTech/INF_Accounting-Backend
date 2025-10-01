@@ -19,6 +19,7 @@ const customerVendorSchema = new mongoose.Schema(
       isCustomer: { type: Boolean, default: false },
       isVendor: { type: Boolean, default: false },
     },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
     name: { type: String, required: true },
     contactPerson: { type: String },
     email: { type: String, unique: true },
@@ -33,7 +34,7 @@ const customerVendorSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "Inactive", "Blocked"],
+      enum: ["Active", "Inactive"],
       default: "Active",
     },
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -56,19 +57,19 @@ customerVendorSchema.pre("save", function (next) {
 
 customerVendorSchema.pre("save", async function (next) {
   if (this.isNew) {
+    if (!this.company)
+      return next(new Error("Company ID is required for customer/vendor"));
+
+    const counterId = `customerVendorId_${this.company.toString()}`;
     const counter = await Counter.findByIdAndUpdate(
-      { _id: "customerVendorId" },
+      { _id: counterId },
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
-
     this.customerVendorId = `CUS-${String(counter.seq).padStart(5, "0")}`;
   }
   next();
 });
 
-const CustomerVendor = mongoose.model(
-  "CustomerVendor",
-  customerVendorSchema
-);
+const CustomerVendor = mongoose.model("CustomerVendor", customerVendorSchema);
 module.exports = CustomerVendor;

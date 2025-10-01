@@ -20,8 +20,29 @@ const getItemById = async (id) => {
     .populate("updatedBy", "name email");
 };
 
+const updateItemold = async (id, data) => {
+  const item = await Item.findById(id);
+  if (!item) return null;
+  Object.keys(data).forEach((key) => {
+    if (data[key] !== undefined && data[key] !== item[key]) {
+      item[key] = data[key];
+    }
+  });
+  return await item.save();
+};
+
 const updateItem = async (id, data) => {
-  return await Item.findByIdAndUpdate(id, data, { new: true });
+  const item = await Item.findOneAndUpdate(
+    { _id: id }, 
+    { $set: data }, 
+    { new: true, runValidators: true }
+  );
+
+  if (!item) {
+    throw new Error("Item not found");
+  }
+
+  return item;
 };
 
 const deleteItem = async (id) => {

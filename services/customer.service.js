@@ -8,20 +8,30 @@ const createCustomerVendor = async (data) => {
 
 // Get all (with filter)
 const getAllCustomerVendors = async (filter = {}) => {
-  return await CustomerVendor.find(filter).populate("addedBy updatedBy", "name email");
+  return await CustomerVendor.find(filter).populate(
+    "addedBy updatedBy",
+    "name email"
+  );
 };
 
 // Get by ID
 const getCustomerVendorById = async (id) => {
-  return await CustomerVendor.findById(id).populate("addedBy updatedBy", "name email");
+  return await CustomerVendor.findById(id).populate(
+    "addedBy updatedBy",
+    "name email"
+  );
 };
 
 // Update
 const updateCustomerVendor = async (id, updateData) => {
-  return await CustomerVendor.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  });
+  return await CustomerVendor.findByIdAndUpdate(
+    { _id: id },
+    { $set: updateData },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 };
 
 // Delete
