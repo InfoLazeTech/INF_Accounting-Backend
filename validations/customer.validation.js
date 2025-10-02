@@ -23,6 +23,16 @@ const addressValidation = Joi.object({
   });
 
 const customerVendorValidation = Joi.object({
+  companyId: Joi.string()
+  .required()
+  .pattern(/^[0-9a-fA-F]{24}$/)
+  .messages({
+    "string.empty": "Company ID is required",
+    "string.pattern.base": "Company ID must be a valid MongoDB ObjectId",
+  }),
+  companyName: Joi.string().required().messages({
+    "string.empty": "Company name is required",
+  }),
   type: Joi.object({
     isCustomer: Joi.boolean().required(),
     isVendor: Joi.boolean().required(),
@@ -100,14 +110,6 @@ const customerVendorValidation = Joi.object({
       "any.only": "Status must be Active or Inactive",
       "any.required": "Status is required",
     }),
-
-  addedBy: Joi.string().required().messages({
-    "string.empty": "AddedBy user ID is required",
-  }),
-
-  updatedBy: Joi.string().required().messages({
-    "string.empty": "UpdatedBy user ID is required",
-  }),
 });
 
 module.exports = { customerVendorValidation };
