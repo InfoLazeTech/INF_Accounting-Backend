@@ -54,12 +54,7 @@ const getAllCustomerVendors = async (req, res) => {
 const getCustomerVendorById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { companyId } = req.query;
-    
-    if (!companyId) {
-      return errorResponse(res, "Company ID is required", 400);
-    }
-    
+    const { companyId } = req.query; 
     const customerVendor = await customerVendorService.getCustomerVendorById(id, companyId);
 
     if (!customerVendor) {
@@ -79,6 +74,9 @@ const updateCustomerVendor = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    // Remove companyId from update data to prevent changing company
+    delete updateData.companyId;
 
     const updated = await customerVendorService.updateCustomerVendor(id, updateData);
 

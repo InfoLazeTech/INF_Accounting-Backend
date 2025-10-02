@@ -60,11 +60,7 @@ const getAllCustomerVendors = async (filter = {}, options = {}) => {
 const getCustomerVendorById = async (id, companyId) => {
   return await CustomerVendor.findOne({ 
     _id: id, 
-    companyId: companyId 
-  }).populate(
-    "addedBy updatedBy",
-    "name email"
-  );
+  })
 };
 
 // Update
