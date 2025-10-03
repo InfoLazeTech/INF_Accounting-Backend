@@ -53,12 +53,6 @@ const customerVendorValidation = Joi.object({
       "any.required": "Type is required",
     }),
 
-  name: Joi.string().min(2).max(100).required().messages({
-    "string.empty": "Name is required",
-    "string.min": "Name must be at least 2 characters",
-    "string.max": "Name cannot exceed 100 characters",
-  }),
-
   contactPerson: Joi.string().required().messages({
     "string.empty": "Contact person is required",
   }),

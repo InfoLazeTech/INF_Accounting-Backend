@@ -21,7 +21,6 @@ const customerVendorSchema = new mongoose.Schema(
       isCustomer: { type: Boolean, default: false },
       isVendor: { type: Boolean, default: false },
     },
-    name: { type: String, required: true },
     contactPerson: { type: String },
     email: { type: String },
     phone: { type: String },
