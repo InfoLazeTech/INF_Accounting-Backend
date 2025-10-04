@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const CounterService = require("../services/counter.service");
+const { required } = require("joi");
 
 const itemSchema = new mongoose.Schema(
   {
@@ -13,6 +14,7 @@ const itemSchema = new mongoose.Schema(
     name: { type: String, required: true },
     description: { type: String },
     category: { type: mongoose.Schema.Types.ObjectId, ref: "ItemCategory" },
+    hsnCode: { type: String, required: true },
     unitOfMeasure: {
       type: String,
       enum: ["pcs", "kg", "liter", "box", "meter", "pack"],
@@ -43,13 +45,13 @@ itemSchema.pre("save", async function (next) {
         'ITEM',
         5
       );
-      
+
       // Double-check for uniqueness within the company
       const existingItem = await this.constructor.findOne({
         companyId: this.companyId,
         itemId: this.itemId
       });
-      
+
       if (existingItem) {
         this.itemId = await CounterService.generateNextId(
           this.companyId.toString(),

@@ -24,12 +24,12 @@ const addressValidation = Joi.object({
 
 const customerVendorValidation = Joi.object({
   companyId: Joi.string()
-  .required()
-  .pattern(/^[0-9a-fA-F]{24}$/)
-  .messages({
-    "string.empty": "Company ID is required",
-    "string.pattern.base": "Company ID must be a valid MongoDB ObjectId",
-  }),
+    .required()
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .messages({
+      "string.empty": "Company ID is required",
+      "string.pattern.base": "Company ID must be a valid MongoDB ObjectId",
+    }),
   companyName: Joi.string().required().messages({
     "string.empty": "Company name is required",
   }),
@@ -82,7 +82,7 @@ const customerVendorValidation = Joi.object({
         "GST Number must be a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)",
     }),
 
-  creditLimit: Joi.number().min(0).required().messages({
+  creditLimit: Joi.number().min(0).optional().allow(null, "").messages({
     "number.base": "Credit limit must be a number",
     "number.min": "Credit limit cannot be negative",
     "any.required": "Credit limit is required",
@@ -90,11 +90,11 @@ const customerVendorValidation = Joi.object({
 
   paymentTerms: Joi.string()
     .valid("Prepaid", "Net 15", "Net 30", "Custom")
-    .required()
+    .empty("")
     .messages({
       "any.only":
         "Payment terms must be one of Prepaid, Net 15, Net 30, Custom",
-      "any.required": "Payment terms are required",
+      // "any.required": "Payment terms are required",
     }),
 
   status: Joi.string()
