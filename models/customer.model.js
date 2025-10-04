@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Counter = require("./counter.model");
+const CounterService = require("../services/counter.service");
 
 const addressSchema = new mongoose.Schema(
   {
@@ -14,15 +14,15 @@ const addressSchema = new mongoose.Schema(
 
 const customerVendorSchema = new mongoose.Schema(
   {
-    customerVendorId: { type: String, unique: true }, // CUS-00001
+    customerVendorId: { type: String }, // CUS-00001 (unique per company)
+    companyId: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
+    companyName: { type: String },
     type: {
       isCustomer: { type: Boolean, default: false },
       isVendor: { type: Boolean, default: false },
     },
-    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
-    name: { type: String, required: true },
     contactPerson: { type: String },
-    email: { type: String, unique: true },
+    email: { type: String },
     phone: { type: String },
     billingAddress: { type: addressSchema },
     shippingAddress: { type: addressSchema },
@@ -37,11 +37,12 @@ const customerVendorSchema = new mongoose.Schema(
       enum: ["Active", "Inactive"],
       default: "Active",
     },
-    addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
+
+// Compound unique index: customerVendorId must be unique within each company
+customerVendorSchema.index({ companyId: 1, customerVendorId: 1 }, { unique: true });
 
 customerVendorSchema.pre("save", function (next) {
   if (
@@ -57,16 +58,35 @@ customerVendorSchema.pre("save", function (next) {
 
 customerVendorSchema.pre("save", async function (next) {
   if (this.isNew) {
-    if (!this.company)
+    if (!this.companyId) {
       return next(new Error("Company ID is required for customer/vendor"));
+    }
 
-    const counterId = `customerVendorId_${this.company.toString()}`;
-    const counter = await Counter.findByIdAndUpdate(
-      { _id: counterId },
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
-    this.customerVendorId = `CUS-${String(counter.seq).padStart(5, "0")}`;
+    try {
+      // Generate unique customer ID using the robust counter system
+      this.customerVendorId = await CounterService.generateNextId(
+        this.companyId.toString(), 
+        'CUSTOMER', 
+        5
+      );
+      
+      // Double-check uniqueness within the company
+      const existingCustomer = await this.constructor.findOne({
+        companyId: this.companyId,
+        customerVendorId: this.customerVendorId
+      });
+      
+      if (existingCustomer) {
+        // If ID already exists, generate a new one
+        this.customerVendorId = await CounterService.generateNextId(
+          this.companyId.toString(), 
+          'CUSTOMER', 
+          5
+        );
+      }
+    } catch (error) {
+      return next(new Error(`Failed to generate customer ID: ${error.message}`));
+    }
   }
   next();
 });

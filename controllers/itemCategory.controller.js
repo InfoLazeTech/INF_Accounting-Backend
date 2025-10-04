@@ -14,12 +14,13 @@ const createCategory = catchAsync(async (req, res) => {
 });
 
 const getCategories = catchAsync(async (req, res) => {
-  const filter = {};
-  if (req.query.companyId) {
-    filter.companyId = req.query.companyId;
+  const { companyId } = req.query;
+  
+  if (!companyId) {
+    return errorResponse(res, "Company ID is required", 400);
   }
 
-  const categories = await itemCategoryService.getAllItemCategories(filter);
+  const categories = await itemCategoryService.getAllItemCategories({ companyId });
   return successResponse(res, categories, "Item categories fetched successfully");
 });
 

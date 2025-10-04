@@ -1,7 +1,7 @@
-const successResponse = (res, data = null, message = 'Success', statusCode = 200, extras = null) => {
+const successResponse = (res, data = null, message = null, statusCode = null, extras = null) => {
   const response = {
     success: true,
-    message,
+    message: message || 'Success',
   };
 
   if (data !== null) {
@@ -9,15 +9,15 @@ const successResponse = (res, data = null, message = 'Success', statusCode = 200
   }
   
   if (extras) response.extras = extras;
-  return res.status(statusCode).json(response);
+  return res.status(statusCode || 200).json(response);
 };
 
-const errorResponse = (res, message = 'Something went wrong', statusCode = 500, details = null) => {
-  return res.status(statusCode).json({
+const errorResponse = (res, message = null, statusCode = null, details = null) => {
+  return res.status(statusCode || 500).json({
     success: false,
     error: {
-      message,
-      code: statusCode,
+      message: message || 'Something went wrong',
+      code: statusCode || 500,
       details,
     },
   });

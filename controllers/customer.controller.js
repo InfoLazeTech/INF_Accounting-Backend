@@ -2,62 +2,114 @@ const { successResponse, errorResponse } = require("../utils/response");
 const catchAsync = require("../utils/catchAsync");
 const customerVendorService = require("../services/customer.service");
 
-const createCustomerVendor = catchAsync(async (req, res) => {
-  const data = req.body;
-  
+const createCustomerVendor = async (req, res) => {
+  try {
+    const data = req.body;
+    console.log(data);
+    const customerVendor = await customerVendorService.createCustomerVendor(data);
 
-  const customerVendor = await customerVendorService.createCustomerVendor(data);
-
-  return successResponse(res, customerVendor, "Customer/Vendor created successfully", 201);
-});
-
-const getAllCustomerVendors = catchAsync(async (req, res) => {
-  const { role } = req.query;
-  let filter = {};
-
-  if (role === "customer") filter = { "type.isCustomer": true };
-  else if (role === "vendor") filter = { "type.isVendor": true };
-  else if (role === "both") filter = { "type.isCustomer": true, "type.isVendor": true };
-
-  const customerVendors = await customerVendorService.getAllCustomerVendors(filter);
-
-  return successResponse(res, customerVendors, "Customer/Vendors fetched successfully");
-});
-
-const getCustomerVendorById = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const customerVendor = await customerVendorService.getCustomerVendorById(id);
-
-  if (!customerVendor) {
-    return errorResponse(res, "Customer/Vendor not found", 404);
+    return successResponse(res, customerVendor, "Customer/Vendor created successfully", 201);
+  } catch (error) {
+    const message = error.message || "Customer/Vendor creation failed";
+    const statusCode = error.statusCode || 400;
+    
+    return errorResponse(res, message, statusCode);
   }
+};
 
-  return successResponse(res, customerVendor, "Customer/Vendor fetched successfully");
-});
+const getAllCustomerVendors = async (req, res) => {
+  try {
+    const { companyId, role, page, limit, search } = req.query;
+    
+    if (!companyId) {
+      return errorResponse(res, "Company ID is required", 400);
+    }
+    
+    let filter = { companyId };
 
-const updateCustomerVendor = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const updateData = req.body;
+    if (role === "customer") filter = { ...filter, "type.isCustomer": true };
+    else if (role === "vendor") filter = { ...filter, "type.isVendor": true };
+    else if (role === "both") filter = { ...filter, "type.isCustomer": true, "type.isVendor": true };
 
-  const updated = await customerVendorService.updateCustomerVendor(id, updateData);
+    const result = await customerVendorService.getAllCustomerVendors(filter, { page, limit, search });
 
-  if (!updated) {
-    return errorResponse(res, "Customer/Vendor not found", 404);
+    return successResponse(
+      res, 
+      result.customers, 
+      result.search ? `Search results for "${result.search}"` : "Customer/Vendors fetched successfully", 
+      200,
+      {
+        ...result.pagination,
+        search: result.search
+      }
+    );
+  } catch (error) {
+    const message = error.message || "Failed to fetch customers/vendors";
+    const statusCode = error.statusCode || 400;
+    
+    return errorResponse(res, message, statusCode);
   }
+};
 
-  return successResponse(res, updated, "Customer/Vendor updated successfully");
-});
+const getCustomerVendorById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { companyId } = req.query; 
+    const customerVendor = await customerVendorService.getCustomerVendorById(id, companyId);
 
-const deleteCustomerVendor = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const deleted = await customerVendorService.deleteCustomerVendor(id);
+    if (!customerVendor) {
+      return errorResponse(res, "Customer/Vendor not found", 404);
+    }
 
-  if (!deleted) {
-    return errorResponse(res, "Customer/Vendor not found", 404);
+    return successResponse(res, customerVendor, "Customer/Vendor fetched successfully");
+  } catch (error) {
+    const message = error.message || "Failed to fetch customer/vendor";
+    const statusCode = error.statusCode || 400;
+    
+    return errorResponse(res, message, statusCode);
   }
+};
 
-  return successResponse(res, null, "Customer/Vendor deleted successfully");
-});
+const updateCustomerVendor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Remove companyId from update data to prevent changing company
+    delete updateData.companyId;
+
+    const updated = await customerVendorService.updateCustomerVendor(id, updateData);
+
+    if (!updated) {
+      return errorResponse(res, "Customer/Vendor not found", 404);
+    }
+
+    return successResponse(res, updated, "Customer/Vendor updated successfully");
+  } catch (error) {
+    const message = error.message || "Failed to update customer/vendor";
+    const statusCode = error.statusCode || 400;
+    
+    return errorResponse(res, message, statusCode);
+  }
+};
+
+const deleteCustomerVendor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await customerVendorService.deleteCustomerVendor(id);
+
+    if (!deleted) {
+      return errorResponse(res, "Customer/Vendor not found", 404);
+    }
+
+    return successResponse(res, null, "Customer/Vendor deleted successfully");
+  } catch (error) {
+    const message = error.message || "Failed to delete customer/vendor";
+    const statusCode = error.statusCode || 400;
+    
+    return errorResponse(res, message, statusCode);
+  }
+};
 
 module.exports = {
   createCustomerVendor,

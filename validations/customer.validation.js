@@ -23,6 +23,16 @@ const addressValidation = Joi.object({
   });
 
 const customerVendorValidation = Joi.object({
+  companyId: Joi.string()
+    .required()
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .messages({
+      "string.empty": "Company ID is required",
+      "string.pattern.base": "Company ID must be a valid MongoDB ObjectId",
+    }),
+  companyName: Joi.string().required().messages({
+    "string.empty": "Company name is required",
+  }),
   type: Joi.object({
     isCustomer: Joi.boolean().required(),
     isVendor: Joi.boolean().required(),
@@ -42,12 +52,6 @@ const customerVendorValidation = Joi.object({
         "You must select either Customer OR Vendor, not both or none.",
       "any.required": "Type is required",
     }),
-
-  name: Joi.string().min(2).max(100).required().messages({
-    "string.empty": "Name is required",
-    "string.min": "Name must be at least 2 characters",
-    "string.max": "Name cannot exceed 100 characters",
-  }),
 
   contactPerson: Joi.string().required().messages({
     "string.empty": "Contact person is required",
@@ -78,7 +82,7 @@ const customerVendorValidation = Joi.object({
         "GST Number must be a valid 15-character GSTIN (e.g., 27ABCDE1234F1Z5)",
     }),
 
-  creditLimit: Joi.number().min(0).required().messages({
+  creditLimit: Joi.number().min(0).optional().allow(null, "").messages({
     "number.base": "Credit limit must be a number",
     "number.min": "Credit limit cannot be negative",
     "any.required": "Credit limit is required",
@@ -86,11 +90,11 @@ const customerVendorValidation = Joi.object({
 
   paymentTerms: Joi.string()
     .valid("Prepaid", "Net 15", "Net 30", "Custom")
-    .required()
+    .empty("")
     .messages({
       "any.only":
         "Payment terms must be one of Prepaid, Net 15, Net 30, Custom",
-      "any.required": "Payment terms are required",
+      // "any.required": "Payment terms are required",
     }),
 
   status: Joi.string()
@@ -100,14 +104,6 @@ const customerVendorValidation = Joi.object({
       "any.only": "Status must be Active or Inactive",
       "any.required": "Status is required",
     }),
-
-  addedBy: Joi.string().required().messages({
-    "string.empty": "AddedBy user ID is required",
-  }),
-
-  updatedBy: Joi.string().required().messages({
-    "string.empty": "UpdatedBy user ID is required",
-  }),
 });
 
 module.exports = { customerVendorValidation };
