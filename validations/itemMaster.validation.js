@@ -11,10 +11,13 @@ const itemValidation = Joi.object({
   sku: Joi.string().required().messages({
     "string.empty": "SKU is required",
   }),
+  hsnCode: Joi.string().required().messages({
+    "string.empty": "hsnCode is required",
+  }),
   name: Joi.string().required().messages({
     "string.empty": "Item name is required",
   }),
-  description: Joi.string().optional().allow("").messages({
+  description: Joi.string().optional().allow(null, "").messages({
     "string.base": "Description must be a string",
   }),
   category: Joi.string()
@@ -63,13 +66,13 @@ const itemValidation = Joi.object({
 });
 
 const updateItemValidation = Joi.object({
-  sku: Joi.string().optional().messages({
+  sku: Joi.string().optional().allow(null, "").messages({
     "string.base": "SKU must be a string",
   }),
-  name: Joi.string().optional().messages({
+  name: Joi.string().optional().allow(null, "").messages({
     "string.base": "Item name must be a string",
   }),
-  description: Joi.string().optional().allow("").messages({
+  description: Joi.string().optional().allow(null, "").messages({
     "string.base": "Description must be a string",
   }),
   category: Joi.string()
@@ -78,37 +81,41 @@ const updateItemValidation = Joi.object({
     .messages({
       "string.pattern.base": "Category ID must be a valid MongoDB ObjectId",
     }),
+  hsnCode: Joi.string().required().messages({
+    "string.empty": "hsnCode is required",
+  }),
   unitOfMeasure: Joi.string()
     .valid("pcs", "kg", "liter", "box", "meter", "pack")
     .optional()
+    .allow(null, "")
     .messages({
       "any.only": "Unit of measure must be one of pcs, kg, liter, box, meter, pack",
     }),
-  purchasePrice: Joi.number().min(0).optional().messages({
+  purchasePrice: Joi.number().min(0).optional().allow(null, "").messages({
     "number.base": "Purchase price must be a number",
     "number.min": "Purchase price cannot be negative",
   }),
-  salePrice: Joi.number().min(0).optional().messages({
+  salePrice: Joi.number().min(0).optional().allow(null, "").messages({
     "number.base": "Sale price must be a number",
     "number.min": "Sale price cannot be negative",
   }),
-  taxRate: Joi.number().min(0).optional().messages({
+  taxRate: Joi.number().min(0).optional().allow(null, "").messages({
     "number.base": "Tax rate must be a number",
     "number.min": "Tax rate cannot be negative",
   }),
-  openingStock: Joi.number().min(0).optional().messages({
+  openingStock: Joi.number().min(0).optional().allow(null, "").messages({
     "number.base": "Opening stock must be a number",
     "number.min": "Opening stock cannot be negative",
   }),
-  availableStock: Joi.number().min(0).optional().messages({
+  availableStock: Joi.number().min(0).optional().allow(null, "").messages({
     "number.base": "Available stock must be a number",
     "number.min": "Available stock cannot be negative",
   }),
-  reorderLevel: Joi.number().min(0).optional().messages({
+  reorderLevel: Joi.number().min(0).optional().allow(null, "").messages({
     "number.base": "Reorder level must be a number",
     "number.min": "Reorder level cannot be negative",
   }),
-  isActive: Joi.boolean().optional().messages({
+  isActive: Joi.boolean().optional().allow(null, "").messages({
     "boolean.base": "isActive must be a boolean",
   }),
 });
@@ -147,9 +154,9 @@ const getItemValidation = Joi.object({
     }),
 });
 
-module.exports = { 
-  itemValidation, 
-  updateItemValidation, 
-  getItemsValidation, 
-  getItemValidation 
+module.exports = {
+  itemValidation,
+  updateItemValidation,
+  getItemsValidation,
+  getItemValidation
 };
