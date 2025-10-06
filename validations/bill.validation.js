@@ -81,7 +81,8 @@ const updateBillValidation = Joi.object({
   totals: totalsValidation,
   paymentTerms: paymentTermsValidation,
   status: Joi.string().valid("draft", "pending", "approved", "paid", "cancelled", "overdue"),
-  notes: Joi.string().allow(""),
+  customerNotes: Joi.string().allow(""),
+  termsAndConditions: Joi.string().allow(""),
   attachments: Joi.array().items(Joi.object({
     filename: Joi.string(),
     originalName: Joi.string(),

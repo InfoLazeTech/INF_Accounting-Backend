@@ -8,6 +8,7 @@ const createInvoice = async (data) => {
   session.startTransaction();
 
   try {
+    data.remainingAmount = data.totals.grandTotal;
     // Create invoice with session
     const invoice = new Invoice(data);
     const savedInvoice = await invoice.save({ session });
