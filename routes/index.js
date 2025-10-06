@@ -9,13 +9,17 @@ const itemCategory = require("./itemCategory.route");
 const itemMaster = require("./itemMaster.route");
 const stock = require("./stock.route");
 const counterRoutes = require("./counter.route");
+const billRoutes = require("./bill.route");
+const invoiceRoutes = require("./invoice.route");
 
 router.use("/auth", authRoutes);
 router.use("/company", companyRoutes);
 router.use("/customer", customerRoutes);
-router.use("/item-category",itemCategory);
-router.use("/itemMaster",itemMaster);
-router.use("/stock",stock);
+router.use("/item-category", itemCategory);
+router.use("/item-master", itemMaster);
+router.use("/stock", stock);
 router.use("/counter", counterRoutes);
+router.use("/bill", billRoutes);
+router.use("/invoice", invoiceRoutes);
 
 module.exports = router;

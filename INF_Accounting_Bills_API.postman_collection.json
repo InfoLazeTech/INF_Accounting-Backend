@@ -1,0 +1,657 @@
+{
+  "info": {
+    "name": "INF Accounting - Bills API",
+    "description": "Complete Bills API collection with dummy data for testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "companyId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d1",
+      "type": "string"
+    },
+    {
+      "key": "vendorId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d2",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d4",
+      "type": "string"
+    },
+    {
+      "key": "billId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@infaccounting.com\",\n  \"password\": \"Admin@123\",\n  \"name\": \"Admin User\",\n  \"phone\": \"+91-9876543210\",\n  \"companyName\": \"INF Accounting Solutions\",\n  \"gstNo\": \"27ABCDE1234F1Z5\",\n  \"panNo\": \"ABCDE1234F\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@infaccounting.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Bills Management",
+      "item": [
+        {
+          "name": "Create Bill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"vendorId\": \"{{vendorId}}\",\n  \"vendorName\": \"ABC Suppliers Ltd\",\n  \"billDate\": \"2024-01-15T10:30:00.000Z\",\n  \"dueDate\": \"2024-02-15T10:30:00.000Z\",\n  \"referenceNumber\": \"PO-2024-001\",\n  \"description\": \"Office equipment purchase\",\n  \"items\": [\n    {\n      \"itemId\": \"{{itemId}}\",\n      \"itemName\": \"Dell Laptop\",\n      \"hsnCode\": \"8471\",\n      \"sku\": \"LAP-DELL-001\",\n      \"description\": \"Dell Inspiron 15 3000\",\n      \"quantity\": 5,\n      \"unitPrice\": 45000,\n      \"discount\": 0,\n      \"taxRate\": 18,\n      \"lineTotal\": 225000\n    },\n    {\n      \"itemId\": \"64f8a1b2c3d4e5f6a7b8c9d5\",\n      \"itemName\": \"Wireless Mouse\",\n      \"hsnCode\": \"8471\",\n      \"sku\": \"MSE-WIRE-001\",\n      \"description\": \"Logitech Wireless Mouse\",\n      \"quantity\": 10,\n      \"unitPrice\": 1200,\n      \"discount\": 0,\n      \"taxRate\": 18,\n      \"lineTotal\": 12000\n    }\n  ],\n  \"totals\": {\n    \"subtotal\": 237000,\n    \"totalDiscount\": 0,\n    \"sgst\": 21330,\n    \"cgst\": 21330,\n    \"igst\": 0,\n    \"totalTax\": 42660,\n    \"shippingCharges\": 2000,\n    \"otherCharges\": 0,\n    \"grandTotal\": 281660\n  },\n  \"paymentTerms\": {\n    \"dueDate\": \"2024-02-15T10:30:00.000Z\",\n    \"paymentMethod\": \"bank_transfer\",\n    \"paymentTerms\": \"Net 30\",\n    \"notes\": \"Payment within 30 days\"\n  },\n  \"status\": \"draft\",\n  \"customerNotes\": \"Urgent delivery required\",\n  \"termsAndConditions\": \"Standard terms and conditions apply\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bill",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Bills",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill?companyId={{companyId}}&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bill by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill/{{billId}}?companyId={{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "{{billId}}"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Bill",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorName\": \"ABC Suppliers Ltd - Updated\",\n  \"description\": \"Office equipment purchase - Updated\",\n  \"status\": \"pending\",\n  \"customerNotes\": \"Updated delivery requirements\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bill/{{billId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "{{billId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Bill",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill/{{billId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "{{billId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Bill Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bill/{{billId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "{{billId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Payment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentAmount\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bill/{{billId}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "{{billId}}", "payment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bills by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill/status/list?companyId={{companyId}}&status=draft",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "status", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "status",
+                  "value": "draft"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Overdue Bills",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill/overdue/list?companyId={{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "overdue", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bills by Vendor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill/vendor/list?companyId={{companyId}}&vendorId={{vendorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "vendor", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "vendorId",
+                  "value": "{{vendorId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bill Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill/summary/stats?companyId={{companyId}}&startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "summary", "stats"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bills by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill/date-range/list?companyId={{companyId}}&startDate=2024-01-01&endDate=2024-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill", "date-range", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-01-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Bills",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill?companyId={{companyId}}&search=laptop&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "search",
+                  "value": "laptop"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📦 Stock Management",
+      "item": [
+        {
+          "name": "Add Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"itemId\": \"{{itemId}}\",\n  \"quantity\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stock/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "add"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"itemId\": \"{{itemId}}\",\n  \"quantity\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stock/remove",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "remove"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Low Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stock/low-stock?companyId={{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "low-stock"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Stock Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stock/summary?companyId={{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "summary"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🚨 Error Testing",
+      "item": [
+        {
+          "name": "Test Invalid Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill?companyId={{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test Missing Company ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bill",
+              "host": ["{{baseUrl}}"],
+              "path": ["bill"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test Insufficient Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"itemId\": \"{{itemId}}\",\n  \"quantity\": 1000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stock/remove",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "remove"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set token from login response",
+          "if (pm.response && pm.response.json() && pm.response.json().data && pm.response.json().data.token) {",
+          "    pm.collectionVariables.set('token', pm.response.json().data.token);",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-save bill ID from create bill response",
+          "if (pm.response && pm.response.json() && pm.response.json().data && pm.response.json().data._id) {",
+          "    pm.collectionVariables.set('billId', pm.response.json().data._id);",
+          "}"
+        ]
+      }
+    }
+  ]
+}
