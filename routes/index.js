@@ -22,4 +22,5 @@ router.use("/counter", counterRoutes);
 router.use("/bill", billRoutes);
 router.use("/invoice", invoiceRoutes);
 
+
 module.exports = router;
