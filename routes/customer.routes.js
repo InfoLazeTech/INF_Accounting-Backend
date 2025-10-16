@@ -7,6 +7,7 @@ const { customerVendorValidation } = require("../validations/customer.validation
 
 router.post("/create", authMiddleware, validate(customerVendorValidation), customerVendorController.createCustomerVendor);
 router.get("/get", authMiddleware, customerVendorController.getAllCustomerVendors);
+router.get("/dropdown", authMiddleware, customerVendorController.getCustomerVendorDropdown);
 router.get("/:id", authMiddleware, customerVendorController.getCustomerVendorById);
 router.put("/:id", authMiddleware, validate(customerVendorValidation), customerVendorController.updateCustomerVendor);
 router.delete("/:id", authMiddleware, customerVendorController.deleteCustomerVendor);
