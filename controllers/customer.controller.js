@@ -111,10 +111,34 @@ const deleteCustomerVendor = async (req, res) => {
   }
 };
 
+const getCustomerVendorDropdown = async (req, res) => {
+  try {
+    const { companyId, type, search } = req.query;
+    
+    if (!companyId) {
+      return errorResponse(res, "Company ID is required", 400);
+    }
+    
+    const result = await customerVendorService.getCustomerVendorDropdown(companyId, type, search);
+
+    return successResponse(
+      res, 
+      result, 
+      result.search ? `Dropdown results for "${result.search}"` : "Customer/Vendor dropdown fetched successfully"
+    );
+  } catch (error) {
+    const message = error.message || "Failed to fetch customer/vendor dropdown";
+    const statusCode = error.statusCode || 400;
+    
+    return errorResponse(res, message, statusCode);
+  }
+};
+
 module.exports = {
   createCustomerVendor,
   getAllCustomerVendors,
   getCustomerVendorById,
   updateCustomerVendor,
   deleteCustomerVendor,
+  getCustomerVendorDropdown,
 };

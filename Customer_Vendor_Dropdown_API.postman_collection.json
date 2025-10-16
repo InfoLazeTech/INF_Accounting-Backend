@@ -1,0 +1,464 @@
+{
+  "info": {
+    "name": "Customer/Vendor Dropdown API",
+    "description": "API endpoints for customer/vendor dropdown functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "companyId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@infaccounting.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Customer/Vendor Management",
+      "item": [
+        {
+          "name": "Create Customer/Vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"customerVendorId\": \"CUST-001\",\n  \"name\": \"ABC Corporation\",\n  \"companyName\": \"ABC Corp Ltd\",\n  \"contactPerson\": \"John Doe\",\n  \"email\": \"john@abccorp.com\",\n  \"phone\": \"+91-9876543210\",\n  \"alternatePhone\": \"+91-9876543211\",\n  \"address\": {\n    \"street\": \"123 Business Park\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"pincode\": \"400001\",\n    \"country\": \"India\"\n  },\n  \"type\": {\n    \"isCustomer\": true,\n    \"isVendor\": false\n  },\n  \"gstNo\": \"27ABCDE1234F1Z5\",\n  \"panNo\": \"ABCDE1234F\",\n  \"creditLimit\": 100000,\n  \"paymentTerms\": \"Net 30\",\n  \"notes\": \"Regular customer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"customerVendorId\": \"VEND-001\",\n  \"name\": \"XYZ Suppliers\",\n  \"companyName\": \"XYZ Suppliers Ltd\",\n  \"contactPerson\": \"Jane Smith\",\n  \"email\": \"jane@xyzsuppliers.com\",\n  \"phone\": \"+91-9876543212\",\n  \"alternatePhone\": \"+91-9876543213\",\n  \"address\": {\n    \"street\": \"456 Industrial Area\",\n    \"city\": \"Delhi\",\n    \"state\": \"Delhi\",\n    \"pincode\": \"110001\",\n    \"country\": \"India\"\n  },\n  \"type\": {\n    \"isCustomer\": false,\n    \"isVendor\": true\n  },\n  \"gstNo\": \"07XYZ1234F1Z5\",\n  \"panNo\": \"XYZ1234F\",\n  \"creditLimit\": 200000,\n  \"paymentTerms\": \"Net 15\",\n  \"notes\": \"Reliable supplier\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Both Customer & Vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"customerVendorId\": \"BOTH-001\",\n  \"name\": \"Global Enterprises\",\n  \"companyName\": \"Global Enterprises Pvt Ltd\",\n  \"contactPerson\": \"Mike Johnson\",\n  \"email\": \"mike@globalent.com\",\n  \"phone\": \"+91-9876543214\",\n  \"alternatePhone\": \"+91-9876543215\",\n  \"address\": {\n    \"street\": \"789 Corporate Plaza\",\n    \"city\": \"Bangalore\",\n    \"state\": \"Karnataka\",\n    \"pincode\": \"560001\",\n    \"country\": \"India\"\n  },\n  \"type\": {\n    \"isCustomer\": true,\n    \"isVendor\": true\n  },\n  \"gstNo\": \"29GLOBAL1234F1Z5\",\n  \"panNo\": \"GLOBAL1234F\",\n  \"creditLimit\": 500000,\n  \"paymentTerms\": \"Net 45\",\n  \"notes\": \"Strategic partner\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "create"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Dropdown APIs",
+      "item": [
+        {
+          "name": "Get All Customers & Vendors (Dropdown)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/dropdown?companyId={{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "dropdown"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Only Customers (Dropdown)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/dropdown?companyId={{companyId}}&type=customer",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "dropdown"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "customer"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Only Vendors (Dropdown)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/dropdown?companyId={{companyId}}&type=vendor",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "dropdown"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "vendor"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Both Customers & Vendors (Dropdown)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/dropdown?companyId={{companyId}}&type=both",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "dropdown"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "both"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Customers (Dropdown)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/dropdown?companyId={{companyId}}&type=customer&search=ABC",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "dropdown"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "customer"
+                },
+                {
+                  "key": "search",
+                  "value": "ABC"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Vendors (Dropdown)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/dropdown?companyId={{companyId}}&type=vendor&search=XYZ",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "dropdown"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "vendor"
+                },
+                {
+                  "key": "search",
+                  "value": "XYZ"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search All (Dropdown)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/dropdown?companyId={{companyId}}&search=Global",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "dropdown"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "search",
+                  "value": "Global"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Full Customer/Vendor APIs",
+      "item": [
+        {
+          "name": "Get All Customers & Vendors (Full)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/get?companyId={{companyId}}&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "get"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Only Customers (Full)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/get?companyId={{companyId}}&role=customer&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "get"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "role",
+                  "value": "customer"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Only Vendors (Full)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/get?companyId={{companyId}}&role=vendor&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "get"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "role",
+                  "value": "vendor"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set token from login response",
+          "if (pm.response && pm.response.json() && pm.response.json().data && pm.response.json().data.token) {",
+          "    pm.collectionVariables.set('token', pm.response.json().data.token);",
+          "}"
+        ]
+      }
+    }
+  ]
+}
