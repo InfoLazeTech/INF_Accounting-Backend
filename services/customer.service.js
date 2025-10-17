@@ -80,10 +80,50 @@ const deleteCustomerVendor = async (id) => {
   return await CustomerVendor.findByIdAndDelete(id);
 };
 
+// Get dropdown list (simplified data for dropdowns)
+const getCustomerVendorDropdown = async (companyId, type, search) => {
+  // Build filter based on type
+  let filter = { companyId };
+  
+  if (type === "customer") {
+    filter = { ...filter, "type.isCustomer": true };
+  } else if (type === "vendor") {
+    filter = { ...filter, "type.isVendor": true };
+  } else if (type === "both") {
+    filter = { ...filter, "type.isCustomer": true, "type.isVendor": true };
+  }
+  
+  // Add search filter if search term is provided
+  if (search && search.trim()) {
+    const searchRegex = new RegExp(search.trim(), 'i');
+    filter = {
+      ...filter,
+      $or: [
+        { name: searchRegex },
+        { contactPerson: searchRegex },
+        { companyName: searchRegex }
+      ]
+    };
+  }
+  
+  // Get only essential fields for dropdown
+  const customers = await CustomerVendor.find(filter)
+    .select('_id name contactPerson companyName type')
+    .sort({ name: 1 }); 
+    // .limit(100); // Limit to 100 for dropdown performance
+  
+  return {
+    customers,
+    search: search || null,
+    type: type || "all"
+  };
+};
+
 module.exports = {
   createCustomerVendor,
   getAllCustomerVendors,
   getCustomerVendorById,
   updateCustomerVendor,
   deleteCustomerVendor,
+  getCustomerVendorDropdown,
 };

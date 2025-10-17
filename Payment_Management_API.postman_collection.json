@@ -1,0 +1,616 @@
+{
+  "info": {
+    "name": "Payment Management API",
+    "description": "Complete Payment Management API with paymentMade and paymentReceived",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "companyId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d1",
+      "type": "string"
+    },
+    {
+      "key": "vendorId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d2",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d3",
+      "type": "string"
+    },
+    {
+      "key": "billId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d4",
+      "type": "string"
+    },
+    {
+      "key": "invoiceId",
+      "value": "64f8a1b2c3d4e5f6a7b8c9d5",
+      "type": "string"
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@infaccounting.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💰 Payment Made (Vendor Payments)",
+      "item": [
+        {
+          "name": "Create Payment Made - Cash",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"paymentType\": \"paymentMade\",\n  \"referenceId\": \"{{billId}}\",\n  \"referenceType\": \"Bill\",\n  \"referenceNumber\": \"BIL-00001\",\n  \"partyId\": \"{{vendorId}}\",\n  \"partyName\": \"ABC Suppliers Ltd\",\n  \"partyType\": \"vendor\",\n  \"paymentDate\": \"2024-01-15T10:30:00.000Z\",\n  \"amount\": 100000,\n  \"charges\": 0,\n  \"paymentMode\": \"cash\",\n  \"description\": \"Payment for office supplies bill\",\n  \"notes\": \"Cash payment made to vendor\",\n  \"status\": \"completed\",\n  \"createdBy\": \"64f8a1b2c3d4e5f6a7b8c9d6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment Made - Bank Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"paymentType\": \"paymentMade\",\n  \"referenceId\": \"{{billId}}\",\n  \"referenceType\": \"Bill\",\n  \"referenceNumber\": \"BIL-00002\",\n  \"partyId\": \"{{vendorId}}\",\n  \"partyName\": \"XYZ Suppliers Ltd\",\n  \"partyType\": \"vendor\",\n  \"paymentDate\": \"2024-01-16T14:30:00.000Z\",\n  \"amount\": 250000,\n  \"charges\": 50,\n  \"paymentMode\": \"bank_transfer\",\n  \"bankDetails\": {\n    \"bankName\": \"State Bank of India\",\n    \"accountNumber\": \"1234567890\",\n    \"ifscCode\": \"SBIN0001234\",\n    \"transactionId\": \"TXN123456789\"\n  },\n  \"description\": \"Bank transfer for equipment purchase\",\n  \"notes\": \"NEFT transfer to vendor account\",\n  \"status\": \"completed\",\n  \"createdBy\": \"64f8a1b2c3d4e5f6a7b8c9d6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment Made - Cheque",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"paymentType\": \"paymentMade\",\n  \"referenceId\": \"{{billId}}\",\n  \"referenceType\": \"Bill\",\n  \"referenceNumber\": \"BIL-00003\",\n  \"partyId\": \"{{vendorId}}\",\n  \"partyName\": \"Global Suppliers Ltd\",\n  \"partyType\": \"vendor\",\n  \"paymentDate\": \"2024-01-17T09:15:00.000Z\",\n  \"amount\": 150000,\n  \"charges\": 0,\n  \"paymentMode\": \"cheque\",\n  \"bankDetails\": {\n    \"bankName\": \"HDFC Bank\",\n    \"accountNumber\": \"9876543210\",\n    \"ifscCode\": \"HDFC0001234\",\n    \"chequeNumber\": \"CHQ123456\"\n  },\n  \"description\": \"Cheque payment for services\",\n  \"notes\": \"Post-dated cheque issued\",\n  \"status\": \"pending\",\n  \"createdBy\": \"64f8a1b2c3d4e5f6a7b8c9d6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "create"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💰 Payment Received (Customer Payments)",
+      "item": [
+        {
+          "name": "Create Payment Received - Cash",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"paymentType\": \"paymentReceived\",\n  \"referenceId\": \"{{invoiceId}}\",\n  \"referenceType\": \"Invoice\",\n  \"referenceNumber\": \"INV-00001\",\n  \"partyId\": \"{{customerId}}\",\n  \"partyName\": \"ABC Corporation\",\n  \"partyType\": \"customer\",\n  \"paymentDate\": \"2024-01-18T11:00:00.000Z\",\n  \"amount\": 200000,\n  \"charges\": 0,\n  \"paymentMode\": \"cash\",\n  \"description\": \"Cash payment received from customer\",\n  \"notes\": \"Full payment received in cash\",\n  \"status\": \"completed\",\n  \"createdBy\": \"64f8a1b2c3d4e5f6a7b8c9d6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment Received - UPI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"paymentType\": \"paymentReceived\",\n  \"referenceId\": \"{{invoiceId}}\",\n  \"referenceType\": \"Invoice\",\n  \"referenceNumber\": \"INV-00002\",\n  \"partyId\": \"{{customerId}}\",\n  \"partyName\": \"XYZ Corporation\",\n  \"partyType\": \"customer\",\n  \"paymentDate\": \"2024-01-19T15:45:00.000Z\",\n  \"amount\": 300000,\n  \"charges\": 0,\n  \"paymentMode\": \"upi\",\n  \"bankDetails\": {\n    \"upiId\": \"customer@paytm\",\n    \"transactionId\": \"UPI123456789\"\n  },\n  \"description\": \"UPI payment received from customer\",\n  \"notes\": \"Instant UPI payment\",\n  \"status\": \"completed\",\n  \"createdBy\": \"64f8a1b2c3d4e5f6a7b8c9d6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment Received - Card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"paymentType\": \"paymentReceived\",\n  \"referenceId\": \"{{invoiceId}}\",\n  \"referenceType\": \"Invoice\",\n  \"referenceNumber\": \"INV-00003\",\n  \"partyId\": \"{{customerId}}\",\n  \"partyName\": \"Global Enterprises\",\n  \"partyType\": \"customer\",\n  \"paymentDate\": \"2024-01-20T10:30:00.000Z\",\n  \"amount\": 450000,\n  \"charges\": 1350,\n  \"paymentMode\": \"card\",\n  \"bankDetails\": {\n    \"transactionId\": \"CARD123456789\"\n  },\n  \"description\": \"Card payment received from customer\",\n  \"notes\": \"Credit card payment with processing fee\",\n  \"status\": \"completed\",\n  \"createdBy\": \"64f8a1b2c3d4e5f6a7b8c9d6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "create"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Payment Management",
+      "item": [
+        {
+          "name": "Get All Payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/get?companyId={{companyId}}&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "get"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/{{paymentId}}?companyId={{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "{{paymentId}}"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 110000,\n  \"notes\": \"Updated payment amount\",\n  \"status\": \"completed\",\n  \"updatedBy\": \"64f8a1b2c3d4e5f6a7b8c9d6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/{{paymentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "{{paymentId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"64f8a1b2c3d4e5f6a7b8c9d6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/{{paymentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "{{paymentId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Payment Reports & Analytics",
+      "item": [
+        {
+          "name": "Get Payments Made (Vendor Payments)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/type/list?companyId={{companyId}}&paymentType=paymentMade&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "type", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "paymentType",
+                  "value": "paymentMade"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payments Received (Customer Payments)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/type/list?companyId={{companyId}}&paymentType=paymentReceived&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "type", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "paymentType",
+                  "value": "paymentReceived"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/summary/stats?companyId={{companyId}}&startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "summary", "stats"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payments by Party",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/party/list?companyId={{companyId}}&partyId={{vendorId}}&paymentType=paymentMade",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "party", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "partyId",
+                  "value": "{{vendorId}}"
+                },
+                {
+                  "key": "paymentType",
+                  "value": "paymentMade"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payments by Reference",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/reference/list?companyId={{companyId}}&referenceId={{billId}}&referenceType=Bill",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "reference", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "referenceId",
+                  "value": "{{billId}}"
+                },
+                {
+                  "key": "referenceType",
+                  "value": "Bill"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Recent Payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/recent/list?companyId={{companyId}}&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "recent", "list"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/analytics/stats?companyId={{companyId}}&startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "analytics", "stats"],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set token from login response",
+          "if (pm.response && pm.response.json() && pm.response.json().data && pm.response.json().data.token) {",
+          "    pm.collectionVariables.set('token', pm.response.json().data.token);",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-save payment ID from create payment response",
+          "if (pm.response && pm.response.json() && pm.response.json().data && pm.response.json().data._id) {",
+          "    pm.collectionVariables.set('paymentId', pm.response.json().data._id);",
+          "}"
+        ]
+      }
+    }
+  ]
+}

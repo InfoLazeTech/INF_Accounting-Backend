@@ -11,6 +11,7 @@ const stock = require("./stock.route");
 const counterRoutes = require("./counter.route");
 const billRoutes = require("./bill.route");
 const invoiceRoutes = require("./invoice.route");
+const paymentRoutes = require("./payment.route");
 
 router.use("/auth", authRoutes);
 router.use("/company", companyRoutes);
@@ -21,6 +22,7 @@ router.use("/stock", stock);
 router.use("/counter", counterRoutes);
 router.use("/bill", billRoutes);
 router.use("/invoice", invoiceRoutes);
+router.use("/payment", paymentRoutes);
 
 
 
