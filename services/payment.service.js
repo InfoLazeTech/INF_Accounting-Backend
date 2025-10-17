@@ -103,7 +103,7 @@ const getPaymentById = async (id, companyId) => {
     isDeleted: false 
   })
     .populate("partyId", "name contactPerson companyName email phone")
-    .populate("referenceId", "billNumber invoiceNumber totals")
+    // .populate("referenceId", "billNumber invoiceNumber totals")
     .populate("createdBy", "name email")
     .populate("updatedBy", "name email");
 };
@@ -127,7 +127,7 @@ const updatePayment = async (id, updateData) => {
       }
     )
       .populate("partyId", "name contactPerson companyName")
-      .populate("referenceId", "billNumber invoiceNumber")
+      // .populate("referenceId", "billNumber invoiceNumber")
       .populate("createdBy", "name email")
       .populate("updatedBy", "name email");
 

@@ -118,9 +118,8 @@ const updatePayment = async (req, res) => {
 const deletePayment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userId } = req.body; // Assuming user ID is passed in request body
 
-    const deleted = await paymentService.deletePayment(id, userId);
+    const deleted = await paymentService.deletePayment(id);
 
     if (!deleted) {
       return errorResponse(res, "Payment not found", 404);

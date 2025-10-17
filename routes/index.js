@@ -20,7 +20,7 @@ router.use("/item-category", itemCategory);
 router.use("/item-master", itemMaster);
 router.use("/stock", stock);
 router.use("/counter", counterRoutes);
-router.use("/bills", billRoutes);
+router.use("/bill", billRoutes);
 router.use("/invoice", invoiceRoutes);
 router.use("/payment", paymentRoutes);
 
