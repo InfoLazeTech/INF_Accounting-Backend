@@ -200,7 +200,9 @@ const generatePurchaseReport = async (companyId, filters = {}) => {
 // Get Sales Summary (Quick stats without full details)
 const getSalesSummary = async (companyId, filters = {}) => {
   try {
-    const { startDate, endDate, customerId, status } = filters;
+    const { startDate, endDate, customerId, status, page = 1, limit = 10 } = filters;
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
     
     // Build invoice query
     let invoiceQuery = { 
@@ -320,20 +322,38 @@ const getSalesSummary = async (companyId, filters = {}) => {
       });
     });
 
-    // Calculate totals
+    // Calculate totals (before pagination for accurate totals)
     const totalInvoiceCount = invoices.length;
     const totalInvoiceAmount = invoices.reduce((sum, invoice) => sum + (invoice.totals?.grandTotal || 0), 0);
     const totalPaymentCount = payments.length;
     const totalPaymentAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
 
+    // Calculate pagination
+    const totalCustomers = customerSummary.length;
+    const skip = (pageNum - 1) * limitNum;
+    const totalPages = Math.ceil(totalCustomers / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
+
+    // Apply pagination to customerSummary
+    const paginatedCustomerSummary = customerSummary.slice(skip, skip + limitNum);
+
     return {
-      customerSummary,
+      customerSummary: paginatedCustomerSummary,
       total: {
         invoiceCount: totalInvoiceCount,
         invoiceTotal: totalInvoiceAmount,
         paymentCount: totalPaymentCount,
         paymentTotal: totalPaymentAmount,
         due: totalInvoiceAmount - totalPaymentAmount
+      },
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalCount: totalCustomers,
+        limit: limitNum,
+        hasNextPage,
+        hasPrevPage
       },
       generatedAt: new Date()
     };
@@ -346,7 +366,9 @@ const getSalesSummary = async (companyId, filters = {}) => {
 // Get Purchase Summary (Quick stats without full details)
 const getPurchaseSummary = async (companyId, filters = {}) => {
   try {
-    const { startDate, endDate, vendorId, status } = filters;
+    const { startDate, endDate, vendorId, status, page = 1, limit = 10 } = filters;
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
     
     // Build bill query
     let billQuery = { 
@@ -466,20 +488,38 @@ const getPurchaseSummary = async (companyId, filters = {}) => {
       });
     });
 
-    // Calculate totals
+    // Calculate totals (before pagination for accurate totals)
     const totalBillCount = bills.length;
     const totalBillAmount = bills.reduce((sum, bill) => sum + (bill.totals?.grandTotal || 0), 0);
     const totalPaymentCount = payments.length;
     const totalPaymentAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
 
+    // Calculate pagination
+    const totalVendors = vendorSummary.length;
+    const skip = (pageNum - 1) * limitNum;
+    const totalPages = Math.ceil(totalVendors / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
+
+    // Apply pagination to vendorSummary
+    const paginatedVendorSummary = vendorSummary.slice(skip, skip + limitNum);
+
     return {
-      vendorSummary,
+      vendorSummary: paginatedVendorSummary,
       total: {
         billCount: totalBillCount,
         billTotal: totalBillAmount,
         paymentCount: totalPaymentCount,
         paymentTotal: totalPaymentAmount,
         due: totalBillAmount - totalPaymentAmount
+      },
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalCount: totalVendors,
+        limit: limitNum,
+        hasNextPage,
+        hasPrevPage
       },
       generatedAt: new Date()
     };
