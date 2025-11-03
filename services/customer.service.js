@@ -108,7 +108,7 @@ const getCustomerVendorDropdown = async (companyId, type, search) => {
   
   // Get only essential fields for dropdown
   const customers = await CustomerVendor.find(filter)
-    .select('_id name contactPerson companyName type')
+    .select('_id name contactPerson companyName type billingAddress shippingAddress')
     .sort({ name: 1 }); 
     // .limit(100); // Limit to 100 for dropdown performance
   

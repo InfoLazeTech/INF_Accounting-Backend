@@ -27,13 +27,16 @@ const createItem = async (req, res) => {
 
 const getAllItems = async (req, res) => {
   try {
-    const { companyId } = req.query;
+    const { companyId,categoryId } = req.query;
     if (!companyId) {
       return errorResponse(res, "Company ID is required", 400);
     }
 
     const { page, limit, search } = req.query;
     const filter = { companyId };
+     if (categoryId) {
+      filter.category = categoryId;
+    }
     const options = { page, limit, search };
 
     const result = await itemService.getAllItems(filter, options);

@@ -92,7 +92,7 @@ const getInvoiceById = async (id, companyId) => {
     companyId: companyId,
     isDeleted: false
   })
-    .populate("customerId", "name contactPerson email phone")
+    .populate("customerId", "name contactPerson email phone billingAddress shippingAddress gstNumber customerVendorId")
     .populate("companyId", "companyName")
     .populate("createdBy", "name email")
     .populate("updatedBy", "name email")
