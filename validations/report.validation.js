@@ -14,9 +14,10 @@ const salesReportValidation = Joi.object({
     "date.format": "End date must be in ISO format (YYYY-MM-DD)",
     "date.min": "End date must be after start date"
   }),
-  customerId: Joi.string().hex().length(24).optional().messages({
+  customerId: Joi.string().hex().length(24).required().messages({
     "string.hex": "Customer ID must be a valid MongoDB ObjectId",
-    "string.length": "Customer ID must be exactly 24 characters"
+    "string.length": "Customer ID must be exactly 24 characters",
+    "any.required": "Customer ID is required for detailed report"
   }),
   status: Joi.string().valid("draft", "sent", "paid", "overdue", "cancelled").optional().messages({
     "any.only": "Status must be one of: draft, sent, paid, overdue, cancelled"
@@ -37,9 +38,10 @@ const purchaseReportValidation = Joi.object({
     "date.format": "End date must be in ISO format (YYYY-MM-DD)",
     "date.min": "End date must be after start date"
   }),
-  vendorId: Joi.string().hex().length(24).optional().messages({
+  vendorId: Joi.string().hex().length(24).required().messages({
     "string.hex": "Vendor ID must be a valid MongoDB ObjectId",
-    "string.length": "Vendor ID must be exactly 24 characters"
+    "string.length": "Vendor ID must be exactly 24 characters",
+    "any.required": "Vendor ID is required for detailed report"
   }),
   status: Joi.string().valid("draft", "sent", "paid", "overdue", "cancelled").optional().messages({
     "any.only": "Status must be one of: draft, sent, paid, overdue, cancelled"

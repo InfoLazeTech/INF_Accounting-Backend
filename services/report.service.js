@@ -11,7 +11,8 @@ const generateSalesReport = async (companyId, filters = {}) => {
     // Build invoice query
     let invoiceQuery = { 
       companyId: new mongoose.Types.ObjectId(companyId),
-      isDeleted: false 
+      isDeleted: false,
+      customerId: new mongoose.Types.ObjectId(customerId)
     };
     
     if (startDate && endDate) {
@@ -21,25 +22,22 @@ const generateSalesReport = async (companyId, filters = {}) => {
       };
     }
     
-    if (customerId) {
-      invoiceQuery.customerId = new mongoose.Types.ObjectId(customerId);
-    }
-    
     if (status) {
       invoiceQuery.status = status;
     }
 
-    // Get invoices with customer details (no items)
+    // Get invoices (no items)
     const invoices = await Invoice.find(invoiceQuery)
       .populate("customerId", "name contactPerson companyName email phone")
-      .select('-items') // Exclude items
+      .select('-items')
       .sort({ invoiceDate: -1 });
 
-    // Get payments received for the same period/parties
+    // Get payments received for the same customer and period
     let paymentQuery = { 
       companyId: new mongoose.Types.ObjectId(companyId),
       paymentType: "paymentReceived",
-      isDeleted: false 
+      isDeleted: false,
+      partyId: new mongoose.Types.ObjectId(customerId)
     };
     
     if (startDate && endDate) {
@@ -48,140 +46,46 @@ const generateSalesReport = async (companyId, filters = {}) => {
         $lte: new Date(endDate)
       };
     }
-    
-    if (customerId) {
-      paymentQuery.partyId = new mongoose.Types.ObjectId(customerId);
-    }
 
     const paymentsReceived = await Payment.find(paymentQuery)
       .populate("partyId", "name contactPerson companyName")
       .sort({ paymentDate: -1 });
 
-    // Group invoices by customer
-    const customerInvoiceMap = new Map();
-    invoices.forEach(invoice => {
-      const customerId = invoice.customerId?._id?.toString() || 'unknown';
-      if (!customerInvoiceMap.has(customerId)) {
-        customerInvoiceMap.set(customerId, {
-          customerId: invoice.customerId?._id,
-          customerName: invoice.customerName,
-          customerDetails: invoice.customerId ? {
-            name: invoice.customerId.name,
-            contactPerson: invoice.customerId.contactPerson,
-            companyName: invoice.customerId.companyName,
-            email: invoice.customerId.email,
-            phone: invoice.customerId.phone
-          } : null,
-          invoices: [],
-          totalInvoiceAmount: 0,
-          totalPaidAmount: 0,
-          totalRemainingAmount: 0
-        });
-      }
-      
-      const customerData = customerInvoiceMap.get(customerId);
-      customerData.invoices.push({
-        invoiceId: invoice._id,
-        invoiceNumber: invoice.invoiceNumber,
-        invoiceDate: invoice.invoiceDate,
-        dueDate: invoice.dueDate,
-        totalAmount: invoice.totals?.grandTotal || 0,
-        paidAmount: invoice.paidAmount || 0,
-        remainingAmount: invoice.remainingAmount || 0,
-        status: invoice.status,
-        paymentStatus: invoice.paidAmount > 0 ? (invoice.paidAmount >= invoice.totals?.grandTotal ? "paid" : "partial") : "pending"
-      });
-      
-      customerData.totalInvoiceAmount += invoice.totals?.grandTotal || 0;
-      customerData.totalPaidAmount += invoice.paidAmount || 0;
-      customerData.totalRemainingAmount += invoice.remainingAmount || 0;
-    });
+    // Format invoices - simple structure
+    const invoicesData = invoices.map(invoice => ({
+      invoiceId: invoice._id,
+      invoiceNumber: invoice.invoiceNumber,
+      invoiceDate: invoice.invoiceDate,
+      dueDate: invoice.dueDate,
+      totalAmount: invoice.totals?.grandTotal || 0
+    }));
 
-    // Group payments by customer
-    const customerPaymentMap = new Map();
-    paymentsReceived.forEach(payment => {
-      const customerId = payment.partyId?._id?.toString() || 'unknown';
-      if (!customerPaymentMap.has(customerId)) {
-        customerPaymentMap.set(customerId, {
-          customerId: payment.partyId?._id,
-          customerName: payment.partyId?.name || "Unknown",
-          payments: [],
-          totalPaymentAmount: 0
-        });
-      }
-      
-      const customerData = customerPaymentMap.get(customerId);
-      customerData.payments.push({
-        paymentId: payment._id,
-        paymentNumber: payment.paymentId,
-        paymentDate: payment.paymentDate,
-        amount: payment.amount,
-        paymentMode: payment.paymentMode,
-        referenceNumber: payment.referenceNumber,
-        status: payment.status
-      });
-      
-      customerData.totalPaymentAmount += payment.amount || 0;
-    });
+    // Format payments - simple structure
+    const paymentsData = paymentsReceived.map(payment => ({
+      paymentId: payment._id,
+      paymentNumber: payment.paymentId,
+      paymentDate: payment.paymentDate,
+      amount: payment.amount,
+      paymentMode: payment.paymentMode,
+      referenceNumber: payment.referenceNumber
+    }));
 
-    // Combine customer data
-    const customerWiseData = [];
-    const allCustomerIds = new Set([...customerInvoiceMap.keys(), ...customerPaymentMap.keys()]);
-    
-    allCustomerIds.forEach(customerId => {
-      const invoiceData = customerInvoiceMap.get(customerId) || {
-        customerId: null,
-        customerName: "Unknown",
-        customerDetails: null,
-        invoices: [],
-        totalInvoiceAmount: 0,
-        totalPaidAmount: 0,
-        totalRemainingAmount: 0
-      };
-      
-      const paymentData = customerPaymentMap.get(customerId) || {
-        customerId: null,
-        customerName: "Unknown",
-        payments: [],
-        totalPaymentAmount: 0
-      };
-      
-      customerWiseData.push({
-        customerId: invoiceData.customerId || paymentData.customerId,
-        customerName: invoiceData.customerName || paymentData.customerName,
-        customerDetails: invoiceData.customerDetails,
-        invoices: invoiceData.invoices,
-        payments: paymentData.payments,
-        summary: {
-          totalInvoiceAmount: invoiceData.totalInvoiceAmount,
-          totalPaidAmount: invoiceData.totalPaidAmount,
-          totalRemainingAmount: invoiceData.totalRemainingAmount,
-          totalPaymentAmount: paymentData.totalPaymentAmount,
-          netAmountDue: invoiceData.totalInvoiceAmount - paymentData.totalPaymentAmount
-        }
-      });
-    });
-
-    // Calculate overall summary
-    const totalInvoices = invoices.length;
-    const totalAmount = invoices.reduce((sum, invoice) => sum + (invoice.totals?.grandTotal || 0), 0);
-    const totalPaid = invoices.reduce((sum, invoice) => sum + (invoice.paidAmount || 0), 0);
-    const totalPending = totalAmount - totalPaid;
-    const totalPaymentsReceived = paymentsReceived.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-    const netAmount = totalAmount - totalPaymentsReceived;
+    // Calculate summary for this customer
+    const totalInvoiceAmount = invoices.reduce((sum, invoice) => sum + (invoice.totals?.grandTotal || 0), 0);
+    const totalPaymentAmount = paymentsReceived.reduce((sum, payment) => sum + (payment.amount || 0), 0);
 
     return {
+      customerId: invoices[0]?.customerId?._id || paymentsReceived[0]?.partyId?._id,
+      customerName: invoices[0]?.customerName || paymentsReceived[0]?.partyId?.name || "Unknown",
+      invoices: invoicesData,
+      payments: paymentsData,
       summary: {
-        totalCustomers: customerWiseData.length,
-        totalInvoices,
-        totalAmount,
-        totalPaid,
-        totalPending,
-        totalPaymentsReceived,
-        netAmount,
-        averageInvoiceAmount: totalInvoices > 0 ? totalAmount / totalInvoices : 0
+        invoiceCount: invoices.length,
+        invoiceTotal: totalInvoiceAmount,
+        paymentCount: paymentsReceived.length,
+        paymentTotal: totalPaymentAmount,
+        due: totalInvoiceAmount - totalPaymentAmount
       },
-      customers: customerWiseData,
       filters: {
         startDate,
         endDate,
@@ -204,7 +108,8 @@ const generatePurchaseReport = async (companyId, filters = {}) => {
     // Build bill query
     let billQuery = { 
       companyId: new mongoose.Types.ObjectId(companyId),
-      isDeleted: false 
+      isDeleted: false,
+      vendorId: new mongoose.Types.ObjectId(vendorId)
     };
     
     if (startDate && endDate) {
@@ -214,25 +119,22 @@ const generatePurchaseReport = async (companyId, filters = {}) => {
       };
     }
     
-    if (vendorId) {
-      billQuery.vendorId = new mongoose.Types.ObjectId(vendorId);
-    }
-    
     if (status) {
       billQuery.status = status;
     }
 
-    // Get bills with vendor details (no items)
+    // Get bills (no items)
     const bills = await Bill.find(billQuery)
       .populate("vendorId", "name contactPerson companyName email phone")
-      .select('-items') // Exclude items
+      .select('-items')
       .sort({ billDate: -1 });
 
-    // Get payments made for the same period/parties
+    // Get payments made for the same vendor and period
     let paymentQuery = { 
       companyId: new mongoose.Types.ObjectId(companyId),
       paymentType: "paymentMade",
-      isDeleted: false 
+      isDeleted: false,
+      partyId: new mongoose.Types.ObjectId(vendorId)
     };
     
     if (startDate && endDate) {
@@ -241,140 +143,46 @@ const generatePurchaseReport = async (companyId, filters = {}) => {
         $lte: new Date(endDate)
       };
     }
-    
-    if (vendorId) {
-      paymentQuery.partyId = new mongoose.Types.ObjectId(vendorId);
-    }
 
     const paymentsMade = await Payment.find(paymentQuery)
       .populate("partyId", "name contactPerson companyName")
       .sort({ paymentDate: -1 });
 
-    // Group bills by vendor
-    const vendorBillMap = new Map();
-    bills.forEach(bill => {
-      const vendorId = bill.vendorId?._id?.toString() || 'unknown';
-      if (!vendorBillMap.has(vendorId)) {
-        vendorBillMap.set(vendorId, {
-          vendorId: bill.vendorId?._id,
-          vendorName: bill.vendorName,
-          vendorDetails: bill.vendorId ? {
-            name: bill.vendorId.name,
-            contactPerson: bill.vendorId.contactPerson,
-            companyName: bill.vendorId.companyName,
-            email: bill.vendorId.email,
-            phone: bill.vendorId.phone
-          } : null,
-          bills: [],
-          totalBillAmount: 0,
-          totalPaidAmount: 0,
-          totalRemainingAmount: 0
-        });
-      }
-      
-      const vendorData = vendorBillMap.get(vendorId);
-      vendorData.bills.push({
-        billId: bill._id,
-        billNumber: bill.billNumber,
-        billDate: bill.billDate,
-        dueDate: bill.dueDate,
-        totalAmount: bill.totals?.grandTotal || 0,
-        paidAmount: bill.paidAmount || 0,
-        remainingAmount: bill.remainingAmount || 0,
-        status: bill.status,
-        paymentStatus: bill.paidAmount > 0 ? (bill.paidAmount >= bill.totals?.grandTotal ? "paid" : "partial") : "pending"
-      });
-      
-      vendorData.totalBillAmount += bill.totals?.grandTotal || 0;
-      vendorData.totalPaidAmount += bill.paidAmount || 0;
-      vendorData.totalRemainingAmount += bill.remainingAmount || 0;
-    });
+    // Format bills - simple structure
+    const billsData = bills.map(bill => ({
+      billId: bill._id,
+      billNumber: bill.billNumber,
+      billDate: bill.billDate,
+      dueDate: bill.dueDate,
+      totalAmount: bill.totals?.grandTotal || 0
+    }));
 
-    // Group payments by vendor
-    const vendorPaymentMap = new Map();
-    paymentsMade.forEach(payment => {
-      const vendorId = payment.partyId?._id?.toString() || 'unknown';
-      if (!vendorPaymentMap.has(vendorId)) {
-        vendorPaymentMap.set(vendorId, {
-          vendorId: payment.partyId?._id,
-          vendorName: payment.partyId?.name || "Unknown",
-          payments: [],
-          totalPaymentAmount: 0
-        });
-      }
-      
-      const vendorData = vendorPaymentMap.get(vendorId);
-      vendorData.payments.push({
-        paymentId: payment._id,
-        paymentNumber: payment.paymentId,
-        paymentDate: payment.paymentDate,
-        amount: payment.amount,
-        paymentMode: payment.paymentMode,
-        referenceNumber: payment.referenceNumber,
-        status: payment.status
-      });
-      
-      vendorData.totalPaymentAmount += payment.amount || 0;
-    });
+    // Format payments - simple structure
+    const paymentsData = paymentsMade.map(payment => ({
+      paymentId: payment._id,
+      paymentNumber: payment.paymentId,
+      paymentDate: payment.paymentDate,
+      amount: payment.amount,
+      paymentMode: payment.paymentMode,
+      referenceNumber: payment.referenceNumber
+    }));
 
-    // Combine vendor data
-    const vendorWiseData = [];
-    const allVendorIds = new Set([...vendorBillMap.keys(), ...vendorPaymentMap.keys()]);
-    
-    allVendorIds.forEach(vendorId => {
-      const billData = vendorBillMap.get(vendorId) || {
-        vendorId: null,
-        vendorName: "Unknown",
-        vendorDetails: null,
-        bills: [],
-        totalBillAmount: 0,
-        totalPaidAmount: 0,
-        totalRemainingAmount: 0
-      };
-      
-      const paymentData = vendorPaymentMap.get(vendorId) || {
-        vendorId: null,
-        vendorName: "Unknown",
-        payments: [],
-        totalPaymentAmount: 0
-      };
-      
-      vendorWiseData.push({
-        vendorId: billData.vendorId || paymentData.vendorId,
-        vendorName: billData.vendorName || paymentData.vendorName,
-        vendorDetails: billData.vendorDetails,
-        bills: billData.bills,
-        payments: paymentData.payments,
-        summary: {
-          totalBillAmount: billData.totalBillAmount,
-          totalPaidAmount: billData.totalPaidAmount,
-          totalRemainingAmount: billData.totalRemainingAmount,
-          totalPaymentAmount: paymentData.totalPaymentAmount,
-          netAmountDue: billData.totalBillAmount - paymentData.totalPaymentAmount
-        }
-      });
-    });
-
-    // Calculate overall summary
-    const totalBills = bills.length;
-    const totalAmount = bills.reduce((sum, bill) => sum + (bill.totals?.grandTotal || 0), 0);
-    const totalPaid = bills.reduce((sum, bill) => sum + (bill.paidAmount || 0), 0);
-    const totalPending = totalAmount - totalPaid;
-    const totalPaymentsMade = paymentsMade.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-    const netAmount = totalAmount - totalPaymentsMade;
+    // Calculate summary for this vendor
+    const totalBillAmount = bills.reduce((sum, bill) => sum + (bill.totals?.grandTotal || 0), 0);
+    const totalPaymentAmount = paymentsMade.reduce((sum, payment) => sum + (payment.amount || 0), 0);
 
     return {
+      vendorId: bills[0]?.vendorId?._id || paymentsMade[0]?.partyId?._id,
+      vendorName: bills[0]?.vendorName || paymentsMade[0]?.partyId?.name || "Unknown",
+      bills: billsData,
+      payments: paymentsData,
       summary: {
-        totalVendors: vendorWiseData.length,
-        totalBills,
-        totalAmount,
-        totalPaid,
-        totalPending,
-        totalPaymentsMade,
-        netAmount,
-        averageBillAmount: totalBills > 0 ? totalAmount / totalBills : 0
+        billCount: bills.length,
+        billTotal: totalBillAmount,
+        paymentCount: paymentsMade.length,
+        paymentTotal: totalPaymentAmount,
+        due: totalBillAmount - totalPaymentAmount
       },
-      vendors: vendorWiseData,
       filters: {
         startDate,
         endDate,
@@ -415,8 +223,10 @@ const getSalesSummary = async (companyId, filters = {}) => {
       invoiceQuery.status = status;
     }
 
-    // Get basic invoice stats
-    const invoices = await Invoice.find(invoiceQuery).select('totals paidAmount status');
+    // Get invoices with customer details
+    const invoices = await Invoice.find(invoiceQuery)
+      .populate("customerId", "name companyName")
+      .select('customerId customerName totals');
     
     // Get payment received stats
     let paymentQuery = { 
@@ -436,23 +246,95 @@ const getSalesSummary = async (companyId, filters = {}) => {
       paymentQuery.partyId = new mongoose.Types.ObjectId(customerId);
     }
 
-    const payments = await Payment.find(paymentQuery).select('amount');
+    const payments = await Payment.find(paymentQuery)
+      .populate("partyId", "name companyName")
+      .select('partyId amount');
 
-    // Calculate summary
-    const totalInvoices = invoices.length;
-    const totalAmount = invoices.reduce((sum, invoice) => sum + (invoice.totals?.grandTotal || 0), 0);
-    const totalPaid = invoices.reduce((sum, invoice) => sum + (invoice.paidAmount || 0), 0);
-    const totalPending = totalAmount - totalPaid;
-    const totalPaymentsReceived = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    // Group invoices by customer
+    const customerInvoiceMap = new Map();
+    invoices.forEach(invoice => {
+      const custId = invoice.customerId?._id?.toString() || 'unknown';
+      const customerName = invoice.customerName || invoice.customerId?.name || invoice.customerId?.companyName || "Unknown";
+      
+      if (!customerInvoiceMap.has(custId)) {
+        customerInvoiceMap.set(custId, {
+          customerId: invoice.customerId?._id,
+          customerName: customerName,
+          invoiceCount: 0,
+          invoiceTotal: 0
+        });
+      }
+      
+      const customerData = customerInvoiceMap.get(custId);
+      customerData.invoiceCount += 1;
+      customerData.invoiceTotal += invoice.totals?.grandTotal || 0;
+    });
+
+    // Group payments by customer
+    const customerPaymentMap = new Map();
+    payments.forEach(payment => {
+      const custId = payment.partyId?._id?.toString() || 'unknown';
+      const customerName = payment.partyId?.name || payment.partyId?.companyName || "Unknown";
+      
+      if (!customerPaymentMap.has(custId)) {
+        customerPaymentMap.set(custId, {
+          customerId: payment.partyId?._id,
+          customerName: customerName,
+          paymentCount: 0,
+          paymentTotal: 0
+        });
+      }
+      
+      const customerData = customerPaymentMap.get(custId);
+      customerData.paymentCount += 1;
+      customerData.paymentTotal += payment.amount || 0;
+    });
+
+    // Combine customer data
+    const customerSummary = [];
+    const allCustomerIds = new Set([...customerInvoiceMap.keys(), ...customerPaymentMap.keys()]);
+    
+    allCustomerIds.forEach(custId => {
+      const invoiceData = customerInvoiceMap.get(custId) || {
+        customerId: null,
+        customerName: "Unknown",
+        invoiceCount: 0,
+        invoiceTotal: 0
+      };
+      
+      const paymentData = customerPaymentMap.get(custId) || {
+        customerId: null,
+        customerName: "Unknown",
+        paymentCount: 0,
+        paymentTotal: 0
+      };
+      
+      customerSummary.push({
+        customerId: invoiceData.customerId || paymentData.customerId,
+        customerName: invoiceData.customerName || paymentData.customerName,
+        invoiceCount: invoiceData.invoiceCount,
+        invoiceTotal: invoiceData.invoiceTotal,
+        paymentCount: paymentData.paymentCount,
+        paymentTotal: paymentData.paymentTotal,
+        due: invoiceData.invoiceTotal - paymentData.paymentTotal
+      });
+    });
+
+    // Calculate totals
+    const totalInvoiceCount = invoices.length;
+    const totalInvoiceAmount = invoices.reduce((sum, invoice) => sum + (invoice.totals?.grandTotal || 0), 0);
+    const totalPaymentCount = payments.length;
+    const totalPaymentAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
 
     return {
-      totalInvoices,
-      totalAmount,
-      totalPaid,
-      totalPending,
-      totalPaymentsReceived,
-      netAmount: totalAmount - totalPaid,
-      averageInvoiceAmount: totalInvoices > 0 ? totalAmount / totalInvoices : 0,
+      customerSummary,
+      total: {
+        invoiceCount: totalInvoiceCount,
+        invoiceTotal: totalInvoiceAmount,
+        paymentCount: totalPaymentCount,
+        paymentTotal: totalPaymentAmount,
+        due: totalInvoiceAmount - totalPaymentAmount
+      },
       generatedAt: new Date()
     };
 
@@ -487,8 +369,10 @@ const getPurchaseSummary = async (companyId, filters = {}) => {
       billQuery.status = status;
     }
 
-    // Get basic bill stats
-    const bills = await Bill.find(billQuery).select('totals paidAmount status');
+    // Get bills with vendor details
+    const bills = await Bill.find(billQuery)
+      .populate("vendorId", "name companyName")
+      .select('vendorId vendorName totals');
     
     // Get payment made stats
     let paymentQuery = { 
@@ -508,23 +392,95 @@ const getPurchaseSummary = async (companyId, filters = {}) => {
       paymentQuery.partyId = new mongoose.Types.ObjectId(vendorId);
     }
 
-    const payments = await Payment.find(paymentQuery).select('amount');
+    const payments = await Payment.find(paymentQuery)
+      .populate("partyId", "name companyName")
+      .select('partyId amount');
 
-    // Calculate summary
-    const totalBills = bills.length;
-    const totalAmount = bills.reduce((sum, bill) => sum + (bill.totals?.grandTotal || 0), 0);
-    const totalPaid = bills.reduce((sum, bill) => sum + (bill.paidAmount || 0), 0);
-    const totalPending = totalAmount - totalPaid;
-    const totalPaymentsMade = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    // Group bills by vendor
+    const vendorBillMap = new Map();
+    bills.forEach(bill => {
+      const vendorIdStr = bill.vendorId?._id?.toString() || 'unknown';
+      const vendorName = bill.vendorName || bill.vendorId?.name || bill.vendorId?.companyName || "Unknown";
+      
+      if (!vendorBillMap.has(vendorIdStr)) {
+        vendorBillMap.set(vendorIdStr, {
+          vendorId: bill.vendorId?._id,
+          vendorName: vendorName,
+          billCount: 0,
+          billTotal: 0
+        });
+      }
+      
+      const vendorData = vendorBillMap.get(vendorIdStr);
+      vendorData.billCount += 1;
+      vendorData.billTotal += bill.totals?.grandTotal || 0;
+    });
+
+    // Group payments by vendor
+    const vendorPaymentMap = new Map();
+    payments.forEach(payment => {
+      const vendorIdStr = payment.partyId?._id?.toString() || 'unknown';
+      const vendorName = payment.partyId?.name || payment.partyId?.companyName || "Unknown";
+      
+      if (!vendorPaymentMap.has(vendorIdStr)) {
+        vendorPaymentMap.set(vendorIdStr, {
+          vendorId: payment.partyId?._id,
+          vendorName: vendorName,
+          paymentCount: 0,
+          paymentTotal: 0
+        });
+      }
+      
+      const vendorData = vendorPaymentMap.get(vendorIdStr);
+      vendorData.paymentCount += 1;
+      vendorData.paymentTotal += payment.amount || 0;
+    });
+
+    // Combine vendor data
+    const vendorSummary = [];
+    const allVendorIds = new Set([...vendorBillMap.keys(), ...vendorPaymentMap.keys()]);
+    
+    allVendorIds.forEach(vendorIdStr => {
+      const billData = vendorBillMap.get(vendorIdStr) || {
+        vendorId: null,
+        vendorName: "Unknown",
+        billCount: 0,
+        billTotal: 0
+      };
+      
+      const paymentData = vendorPaymentMap.get(vendorIdStr) || {
+        vendorId: null,
+        vendorName: "Unknown",
+        paymentCount: 0,
+        paymentTotal: 0
+      };
+      
+      vendorSummary.push({
+        vendorId: billData.vendorId || paymentData.vendorId,
+        vendorName: billData.vendorName || paymentData.vendorName,
+        billCount: billData.billCount,
+        billTotal: billData.billTotal,
+        paymentCount: paymentData.paymentCount,
+        paymentTotal: paymentData.paymentTotal,
+        due: billData.billTotal - paymentData.paymentTotal
+      });
+    });
+
+    // Calculate totals
+    const totalBillCount = bills.length;
+    const totalBillAmount = bills.reduce((sum, bill) => sum + (bill.totals?.grandTotal || 0), 0);
+    const totalPaymentCount = payments.length;
+    const totalPaymentAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
 
     return {
-      totalBills,
-      totalAmount,
-      totalPaid,
-      totalPending,
-      totalPaymentsMade,
-      netAmount: totalAmount - totalPaid,
-      averageBillAmount: totalBills > 0 ? totalAmount / totalBills : 0,
+      vendorSummary,
+      total: {
+        billCount: totalBillCount,
+        billTotal: totalBillAmount,
+        paymentCount: totalPaymentCount,
+        paymentTotal: totalPaymentAmount,
+        due: totalBillAmount - totalPaymentAmount
+      },
       generatedAt: new Date()
     };
 
