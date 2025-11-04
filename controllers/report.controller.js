@@ -66,7 +66,7 @@ const generatePurchaseReport = async (req, res) => {
 // Get Sales Summary (Quick stats)
 const getSalesSummary = async (req, res) => {
   try {
-    const { companyId, startDate, endDate, customerId, status } = req.query;
+    const { companyId, startDate, endDate, customerId, status, page, limit } = req.query;
     
     if (!companyId) {
       return errorResponse(res, "Company ID is required", 400);
@@ -76,7 +76,9 @@ const getSalesSummary = async (req, res) => {
       startDate,
       endDate,
       customerId,
-      status
+      status,
+      page,
+      limit
     };
 
     const result = await reportService.getSalesSummary(companyId, filters);
@@ -97,7 +99,7 @@ const getSalesSummary = async (req, res) => {
 // Get Purchase Summary (Quick stats)
 const getPurchaseSummary = async (req, res) => {
   try {
-    const { companyId, startDate, endDate, vendorId, status } = req.query;
+    const { companyId, startDate, endDate, vendorId, status, page, limit } = req.query;
     
     if (!companyId) {
       return errorResponse(res, "Company ID is required", 400);
@@ -107,7 +109,9 @@ const getPurchaseSummary = async (req, res) => {
       startDate,
       endDate,
       vendorId,
-      status
+      status,
+      page,
+      limit
     };
 
     const result = await reportService.getPurchaseSummary(companyId, filters);
@@ -125,9 +129,39 @@ const getPurchaseSummary = async (req, res) => {
   }
 };
 
+// Get Dashboard Reporting
+const getDashboardReporting = async (req, res) => {
+  try {
+    const { companyId, startDate, endDate } = req.query;
+
+    if (!companyId) {
+      return errorResponse(res, "Company ID is required", 400);
+    }
+
+    const filters = {
+      startDate,
+      endDate
+    };
+
+    const result = await reportService.getDashboardReporting(companyId, filters);
+
+    return successResponse(
+      res,
+      result,
+      "Dashboard reporting data fetched successfully"
+    );
+  } catch (error) {
+    const message = error.message || "Failed to fetch dashboard reporting data";
+    const statusCode = error.statusCode || 400;
+    
+    return errorResponse(res, message, statusCode);
+  }
+};
+
 module.exports = {
   generateSalesReport,
   generatePurchaseReport,
   getSalesSummary,
-  getPurchaseSummary
+  getPurchaseSummary,
+  getDashboardReporting
 };
