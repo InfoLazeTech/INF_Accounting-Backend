@@ -116,9 +116,26 @@ const purchaseSummaryValidation = Joi.object({
   })
 });
 
+// Dashboard Reporting Validation
+const dashboardReportingValidation = Joi.object({
+  companyId: Joi.string().hex().length(24).required().messages({
+    "string.hex": "Company ID must be a valid MongoDB ObjectId",
+    "string.length": "Company ID must be exactly 24 characters",
+    "any.required": "Company ID is required"
+  }),
+  startDate: Joi.date().iso().optional().messages({
+    "date.format": "Start date must be in ISO format (YYYY-MM-DD)"
+  }),
+  endDate: Joi.date().iso().min(Joi.ref('startDate')).optional().messages({
+    "date.format": "End date must be in ISO format (YYYY-MM-DD)",
+    "date.min": "End date must be after start date"
+  })
+});
+
 module.exports = {
   salesReportValidation,
   purchaseReportValidation,
   salesSummaryValidation,
-  purchaseSummaryValidation
+  purchaseSummaryValidation,
+  dashboardReportingValidation
 };

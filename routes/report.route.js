@@ -7,7 +7,8 @@ const {
   salesReportValidation,
   purchaseReportValidation,
   salesSummaryValidation,
-  purchaseSummaryValidation
+  purchaseSummaryValidation,
+  dashboardReportingValidation
 } = require("../validations/report.validation");
 
 // Sales Report Routes
@@ -38,6 +39,14 @@ router.get(
   authMiddleware,
   validate(purchaseSummaryValidation, "query"),
   reportController.getPurchaseSummary
+);
+
+// Dashboard Reporting Route
+router.get(
+  "/dashboard",
+  authMiddleware,
+  validate(dashboardReportingValidation, "query"),
+  reportController.getDashboardReporting
 );
 
 module.exports = router;

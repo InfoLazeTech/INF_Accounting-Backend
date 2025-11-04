@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Invoice = require("../models/invoice.model");
 const Bill = require("../models/bill.model");
 const Payment = require("../models/payment.model");
+const CustomerVendor = require("../models/customer.model");
 
 // Generate Sales Report (on-the-fly from invoices and paymentReceived) - Customer Wise
 const generateSalesReport = async (companyId, filters = {}) => {
@@ -529,9 +530,147 @@ const getPurchaseSummary = async (companyId, filters = {}) => {
   }
 };
 
+// Get Total Customers Count
+const getTotalCustomer = async (companyId) => {
+  try {
+    const count = await CustomerVendor.countDocuments({
+      companyId: new mongoose.Types.ObjectId(companyId),
+      "type.isCustomer": true,
+      status: "Active"
+    });
+    return count;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Get Total Vendors Count
+const getTotalVendor = async (companyId) => {
+  try {
+    const count = await CustomerVendor.countDocuments({
+      companyId: new mongoose.Types.ObjectId(companyId),
+      "type.isVendor": true,
+      status: "Active"
+    });
+    return count;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Get Total Sales Amount
+const getTotalSales = async (companyId, filters = {}) => {
+  try {
+    const { startDate, endDate } = filters;
+    
+    let invoiceQuery = {
+      companyId: new mongoose.Types.ObjectId(companyId),
+      isDeleted: false
+    };
+
+    if (startDate && endDate) {
+      invoiceQuery.invoiceDate = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+
+    const result = await Invoice.aggregate([
+      { $match: invoiceQuery },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$totals.grandTotal" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    return {
+      totalAmount: result[0]?.totalAmount || 0,
+      count: result[0]?.count || 0
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Get Total Purchase Amount
+const getTotalPurchase = async (companyId, filters = {}) => {
+  try {
+    const { startDate, endDate } = filters;
+    
+    let billQuery = {
+      companyId: new mongoose.Types.ObjectId(companyId),
+      isDeleted: false
+    };
+
+    if (startDate && endDate) {
+      billQuery.billDate = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+
+    const result = await Bill.aggregate([
+      { $match: billQuery },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$totals.grandTotal" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    return {
+      totalAmount: result[0]?.totalAmount || 0,
+      count: result[0]?.count || 0
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Get Dashboard Reporting (Combined function)
+const getDashboardReporting = async (companyId, filters = {}) => {
+  try {
+    const { startDate, endDate } = filters;
+
+    // Execute all service functions in parallel for better performance
+    const [totalCustomer, totalVendor, totalSales, totalPurchase] = await Promise.all([
+      getTotalCustomer(companyId),
+      getTotalVendor(companyId),
+      getTotalSales(companyId, { startDate, endDate }),
+      getTotalPurchase(companyId, { startDate, endDate })
+    ]);
+
+    return {
+      totalCustomer,
+      totalVendor,
+      totalSales: totalSales.totalAmount,
+      totalSalesCount: totalSales.count,
+      totalPurchase: totalPurchase.totalAmount,
+      totalPurchaseCount: totalPurchase.count,
+      filters: {
+        startDate,
+        endDate
+      },
+      generatedAt: new Date()
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   generateSalesReport,
   generatePurchaseReport,
   getSalesSummary,
-  getPurchaseSummary
+  getPurchaseSummary,
+  getTotalCustomer,
+  getTotalVendor,
+  getTotalSales,
+  getTotalPurchase,
+  getDashboardReporting
 };

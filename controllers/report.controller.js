@@ -129,9 +129,39 @@ const getPurchaseSummary = async (req, res) => {
   }
 };
 
+// Get Dashboard Reporting
+const getDashboardReporting = async (req, res) => {
+  try {
+    const { companyId, startDate, endDate } = req.query;
+
+    if (!companyId) {
+      return errorResponse(res, "Company ID is required", 400);
+    }
+
+    const filters = {
+      startDate,
+      endDate
+    };
+
+    const result = await reportService.getDashboardReporting(companyId, filters);
+
+    return successResponse(
+      res,
+      result,
+      "Dashboard reporting data fetched successfully"
+    );
+  } catch (error) {
+    const message = error.message || "Failed to fetch dashboard reporting data";
+    const statusCode = error.statusCode || 400;
+    
+    return errorResponse(res, message, statusCode);
+  }
+};
+
 module.exports = {
   generateSalesReport,
   generatePurchaseReport,
   getSalesSummary,
-  getPurchaseSummary
+  getPurchaseSummary,
+  getDashboardReporting
 };
