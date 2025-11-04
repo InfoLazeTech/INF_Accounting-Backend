@@ -13,6 +13,7 @@ const billRoutes = require("./bill.route");
 const invoiceRoutes = require("./invoice.route");
 const paymentRoutes = require("./payment.route");
 const reportRoutes = require("./report.route");
+const itemConfigurationRoutes = require("./itemConfiguration.route");
 
 router.use("/auth", authRoutes);
 router.use("/company", companyRoutes);
@@ -25,6 +26,7 @@ router.use("/bill", billRoutes);
 router.use("/invoice", invoiceRoutes);
 router.use("/payment", paymentRoutes);
 router.use("/report", reportRoutes);
+router.use("/item-configuration", itemConfigurationRoutes);
 
 
 
