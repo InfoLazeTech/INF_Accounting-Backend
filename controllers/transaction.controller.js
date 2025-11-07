@@ -3,7 +3,7 @@ const { successResponse, errorResponse } = require("../utils/response");
 
 const addTransaction = async (req, res) => {
   try {
-    const { bankId, description, amount , type, date, companyId } = req.body;
+    const { bankId, description, amount, type, date, companyId } = req.body;
     const transaction = await transactionService.addTransaction(
       bankId,
       description,
@@ -27,21 +27,68 @@ const addTransaction = async (req, res) => {
   }
 };
 
+const updateTransaction = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const { description, amount, type, date } = req.body;
+    const transaction = await transactionService.updateTransaction(
+      transactionId,
+      description,
+      amount,
+      type,
+      date
+    );
+    return successResponse(
+      res,
+      transaction,
+      "Transaction Updating successfully",
+      201
+    );
+  } catch (err) {
+    return errorResponse(
+      res,
+      err.message || "Error While Update Transaction",
+      500
+    );
+  }
+};
+
+const deleteTransaction = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const transaction = await transactionService.deleteTransaction(
+      transactionId
+    );
+    return successResponse(res, null, "Transaction Deleted successfully", 201);
+  } catch (err) {
+    return errorResponse(
+      res,
+      err.message || "Error While Delete Transaction",
+      500
+    );
+  }
+};
+
 const getTransactionsByBankId = async (req, res) => {
   try {
     const { bankId, companyId } = req.params;
-    const { month, year } = req.query;
+    const { startDate, endDate } = req.query;
     const transactions = await transactionService.getTransactionsByBankId(
       bankId,
       companyId,
-      month, 
-      year
+      startDate,
+      endDate
     );
     return successResponse(
-      res, transactions.transactions, "Bank Transactions Fetched", 200, {
-    openingBalance: transactions.openingBalance,
-    closingBalance: transactions.closingBalance,
-  });
+      res,
+      transactions.transactions,
+      "Bank Transactions Fetched",
+      200,
+      {
+        openingBalance: transactions.openingBalance,
+        closingBalance: transactions.closingBalance,
+      }
+    );
   } catch (err) {
     return errorResponse(
       res,
@@ -53,5 +100,7 @@ const getTransactionsByBankId = async (req, res) => {
 
 module.exports = {
   addTransaction,
+  updateTransaction,
+  deleteTransaction,
   getTransactionsByBankId,
 };

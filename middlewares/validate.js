@@ -7,8 +7,8 @@ const validate = (schema) => (req, res, next) => {
   });
 
   if (error) {
-    const errors = error.details.map((d) => d.message);
-    return errorResponse(res, "Validation failed", 400, errors);
+    const errors = error.details.map((d) => d.message).join(', ');
+    return errorResponse(res, errors || "Validation failed", 400, null);
   }
 
   // overwrite req.body with validated + sanitized values

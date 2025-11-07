@@ -5,7 +5,13 @@ const createBankAccount = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { bankName, accountNumber, companyId, openingBalance } = req.body;
-    const bank = await bankService.createBankAccount(bankName, accountNumber, userId, companyId, openingBalance);
+    const bank = await bankService.createBankAccount(
+      bankName,
+      accountNumber,
+      userId,
+      companyId,
+      openingBalance
+    );
     return successResponse(res, bank, "Bank account created successfully", 201);
   } catch (err) {
     return errorResponse(
@@ -16,14 +22,33 @@ const createBankAccount = async (req, res) => {
   }
 };
 
+const updateBankAccount = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { bankId } = req.params;
+    const { bankName, accountNumber, openingBalance } = req.body;
+    const updates = { bankName, accountNumber, openingBalance };
+    const bank = await bankService.updateBankAccount(bankId, updates, userId);
+    return successResponse(res, bank, "Bank account updated successfully", 201);
+  } catch (err) {
+    return errorResponse(
+      res,
+      err.message || "Error While Updating Bank Account",
+      500
+    );
+  }
+};
+
 const listBankAccounts = async (req, res) => {
   try {
-    const banks = await bankService.listBankAccounts();
+    const { search, page, limit } = req.query;
+    const banks = await bankService.listBankAccounts({ search, page, limit });
     return successResponse(
       res,
-      banks,
+      banks.data,
       "Bank accounts fetched successfully",
-      200
+      200,
+      banks.pagination
     );
   } catch (err) {
     return errorResponse(
@@ -48,8 +73,23 @@ const getBankAccountById = async (req, res) => {
     );
   }
 };
+
+const BankAccounts = async (req, res) => {
+  try {
+    const bank = await bankService.getBankAccounts();
+    return successResponse(res, bank, "Bank account fetched successfully", 200);
+  } catch (err) {
+    return errorResponse(
+      res,
+      err.message || "Error While Fetching Bank Account",
+      500
+    );
+  }
+};
 module.exports = {
   createBankAccount,
+  updateBankAccount,
   listBankAccounts,
   getBankAccountById,
+  BankAccounts,
 };
