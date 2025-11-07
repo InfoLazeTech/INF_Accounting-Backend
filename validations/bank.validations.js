@@ -17,7 +17,7 @@ const createBankAccountValidation = Joi.object({
 
 const updateBankAccountValidation = Joi.object({
   bankName: Joi.string().optional(),
-  accountNumber: Joi.string().optional(),
+  accountNumber: Joi.number().optional(),
   openingBalance: Joi.number()
     .min(0)
     .optional()
