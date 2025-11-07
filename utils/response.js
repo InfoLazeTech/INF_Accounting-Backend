@@ -26,10 +26,10 @@ const successResponse = (res, data = null, message = null, statusCode = null, ex
 const errorResponse = (res, message = "Something went wrong", statusCode = 500, details = null) => {
   const response = {
     success: false,
-    // error: {
+    error: {
       message,
       // code: statusCode,
-    // },
+    },
   };
 
   if (details !== null) response.details = details;

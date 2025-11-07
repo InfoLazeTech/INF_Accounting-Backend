@@ -4,7 +4,7 @@ const createBankAccountValidation = Joi.object({
   bankName: Joi.string().trim().required().messages({
     "string.empty": "Bank name is required",
   }),
-  accountNumber: Joi.string().trim().required().messages({
+  accountNumber: Joi.number().required().messages({
     "string.empty": "Account number is required",
   }),
   companyId: Joi.string().trim().required().messages({
