@@ -18,6 +18,12 @@ const companySchema = new mongoose.Schema({
   logo: { type: String },
   signature: { type: String },
 
+  // Invoice number configuration (optional, defaults to 'INV' prefix)
+  invoiceNumberConfig: {
+    prefix: { type: String }, // Custom prefix (e.g., 'INV', 'INV-2024', etc.)
+    suffix: { type: String }, // Custom suffix (e.g., '2024', 'Q1', etc.)
+  },
+
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

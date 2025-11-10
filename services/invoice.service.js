@@ -369,6 +369,115 @@ const getMonthlyRevenueTrend = async (companyId, months = 12) => {
   ]);
 };
 
+// Get item sales details from invoices
+const getItemSalesDetails = async (companyId, itemId, options = {}) => {
+  const { customerId, page = 1, limit = 10 } = options;
+  
+  const matchStage = {
+    companyId: new mongoose.Types.ObjectId(companyId),
+    isDeleted: false,
+    "items.itemId": new mongoose.Types.ObjectId(itemId)
+  };
+
+  // Add customer filter if provided
+  if (customerId) {
+    matchStage.customerId = new mongoose.Types.ObjectId(customerId);
+  }
+
+  // Build aggregation pipeline
+  const pipeline = [
+    // Match invoices with the item
+    { $match: matchStage },
+    
+    // Unwind items array
+    { $unwind: "$items" },
+    
+    // Match only the specific item
+    { $match: { "items.itemId": new mongoose.Types.ObjectId(itemId) } },
+    
+    // Project the fields we need
+    {
+      $project: {
+        invoiceId: "$_id",
+        invoiceNumber: 1,
+        invoiceDate: 1,
+        customerId: 1,
+        customerName: 1,
+        itemDetails: {
+          itemId: "$items.itemId",
+          itemName: "$items.itemName",
+          sku: "$items.sku",
+          hsnCode: "$items.hsnCode",
+          description: "$items.description",
+          quantity: "$items.quantity",
+          unitPrice: "$items.unitPrice",
+          discount: "$items.discount",
+          discountType: "$items.discountType",
+          taxRate: "$items.taxRate",
+          lineTotal: "$items.lineTotal"
+        },
+        invoiceTotals: "$totals",
+        status: 1,
+        paymentStatus: 1,
+        createdAt: 1
+      }
+    },
+    
+    // Sort by invoice date (newest first)
+    { $sort: { invoiceDate: -1 } }
+  ];
+
+  // Get total count
+  const countPipeline = [
+    ...pipeline,
+    { $count: "total" }
+  ];
+  
+  const countResult = await Invoice.aggregate(countPipeline);
+  const totalCount = countResult[0]?.total || 0;
+  
+  // Calculate pagination
+  const skip = (page - 1) * limit;
+  const totalPages = Math.ceil(totalCount / limit);
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+  
+  // Add pagination to pipeline
+  const paginatedPipeline = [
+    ...pipeline,
+    { $skip: skip },
+    { $limit: parseInt(limit) }
+  ];
+  
+  // Get results
+  const results = await Invoice.aggregate(paginatedPipeline);
+  
+  // Populate customer details
+  const CustomerVendor = require("../models/customer.model");
+  const populatedResults = await Promise.all(
+    results.map(async (result) => {
+      if (result.customerId) {
+        const customer = await CustomerVendor.findById(result.customerId)
+          .select("customerVendorId companyName contactPerson email phone");
+        result.customer = customer;
+      }
+      return result;
+    })
+  );
+  
+  return {
+    sales: populatedResults,
+    pagination: {
+      currentPage: parseInt(page),
+      totalPages,
+      totalCount,
+      limit: parseInt(limit),
+      hasNextPage,
+      hasPrevPage
+    }
+  };
+};
+
 module.exports = {
   createInvoice,
   getAllInvoices,
@@ -383,5 +492,6 @@ module.exports = {
   getRevenueSummary,
   getInvoicesByDateRange,
   getTopCustomersByRevenue,
-  getMonthlyRevenueTrend
+  getMonthlyRevenueTrend,
+  getItemSalesDetails
 };

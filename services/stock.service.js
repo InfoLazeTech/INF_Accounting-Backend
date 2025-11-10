@@ -40,9 +40,9 @@ const removeStock = async ({ companyId, itemId, quantity }) => {
 
     if (!item) throw new Error("Item not found for this company");
 
-    if (item.availableStock < quantity) {
-      throw new Error("Not enough stock available");
-    }
+    // if (item.availableStock < quantity) {
+    //   throw new Error("Not enough stock available");
+    // }
 
     item.availableStock -= quantity;
     await item.save({ session });

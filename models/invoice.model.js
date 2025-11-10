@@ -135,11 +135,37 @@ invoiceSchema.pre("save", async function (next) {
     }
     
     try {
-      this.invoiceNumber = await CounterService.generateNextId(
+      // Fetch company configuration for invoice number formatting
+      const Company = require("./company.model");
+      const company = await Company.findById(this.companyId);
+      
+      if (!company) {
+        return next(new Error("Company not found"));
+      }
+      
+      // Use company's custom prefix if set, otherwise use default 'INV'
+      const prefix = (company.invoiceNumberConfig && company.invoiceNumberConfig.prefix) 
+        ? company.invoiceNumberConfig.prefix 
+        : CounterService.MODULES.INVOICE.prefix;
+      
+      const module = CounterService.MODULES.INVOICE.module;
+      const padding = 5;
+      
+      // Get the next sequence number
+      const Counter = require("../models/counter.model");
+      const sequence = await Counter.getNextSequence(
         this.companyId.toString(),
-        'INVOICE',
-        5
+        module,
+        prefix
       );
+      
+      // Format the invoice number: prefix-sequence(-suffix)
+      const sequencePart = String(sequence).padStart(padding, '0');
+      const suffix = (company.invoiceNumberConfig && company.invoiceNumberConfig.suffix) 
+        ? company.invoiceNumberConfig.suffix 
+        : '';
+      const suffixPart = suffix ? `-${suffix}` : '';
+      this.invoiceNumber = `${prefix}-${sequencePart}${suffixPart}`;
       
       // Double-check for uniqueness within the company
       const existingInvoice = await this.constructor.findOne({
@@ -148,11 +174,14 @@ invoiceSchema.pre("save", async function (next) {
       });
       
       if (existingInvoice) {
-        this.invoiceNumber = await CounterService.generateNextId(
+        // If collision, regenerate with next sequence
+        const newSequence = await Counter.getNextSequence(
           this.companyId.toString(),
-          'INVOICE',
-          5
+          module,
+          prefix
         );
+        const newSequencePart = String(newSequence).padStart(padding, '0');
+        this.invoiceNumber = `${prefix}-${newSequencePart}${suffixPart}`;
       }
       
       // Calculate remaining amount
