@@ -84,10 +84,7 @@ const getTransactionsByBankId = async (req, res) => {
       transactions.transactions,
       "Bank Transactions Fetched",
       200,
-      {
-        openingBalance: transactions.openingBalance,
-        closingBalance: transactions.closingBalance,
-      }
+      transactions.bankData
     );
   } catch (err) {
     return errorResponse(

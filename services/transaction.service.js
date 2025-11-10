@@ -254,10 +254,11 @@ if (endDate) {
   });
 
   const closingBalance = runningBalance;
-
+  const bankName = bank.bankName;
+  const BankAccountNo = bank.accountNumber
+  const bankData = { openingBalance, closingBalance, bankName, BankAccountNo};
   return {
-    openingBalance,
-    closingBalance,
+   bankData:bankData,
     transactions: dynamicTransactions,
   };
 };
