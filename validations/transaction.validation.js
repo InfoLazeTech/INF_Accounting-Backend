@@ -19,14 +19,14 @@ const addTransactionValidation = Joi.object({
   companyId: Joi.string().trim().required().messages({
     "string.empty": "companyId is required",
   }),
-})
+}).unknown(false);
 
 const updateTransactionValidation = Joi.object({
   description: Joi.string().max(255).optional(),
   amount: Joi.number().positive().optional(),
   type: Joi.string().valid("credit", "debit").optional(),
   date: Joi.date().optional(),
-}).or("description", "amount", "type", "date"); // must include at least one field
+}).or("description", "amount", "type", "date").unknown(false);; // must include at least one field
 
 
 module.exports = {

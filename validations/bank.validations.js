@@ -13,7 +13,7 @@ const createBankAccountValidation = Joi.object({
   openingBalance: Joi.number().min(0).default(0).required().messages({
     "number.min": "Opening balance cannot be negative",
   }),
-});
+}).unknown(false);;
 
 const updateBankAccountValidation = Joi.object({
   bankName: Joi.string().optional(),
@@ -21,7 +21,7 @@ const updateBankAccountValidation = Joi.object({
   openingBalance: Joi.number()
     .min(0)
     .optional()
-}).or("bankName", "accountNumber", "openingBalance"); 
+}).or("bankName", "accountNumber", "openingBalance").unknown(false);; 
 
 module.exports = {
   createBankAccountValidation,
