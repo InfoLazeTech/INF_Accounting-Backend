@@ -21,6 +21,14 @@ const companyUpdateValidation = Joi.object({
   }).optional(),
   logo: Joi.string().optional(),
   signature: Joi.string().optional(),
+  invoiceNumberConfig: Joi.object({
+    prefix: Joi.string().optional().allow('').messages({
+      "string.base": "Invoice number prefix must be a string",
+    }),
+    suffix: Joi.string().optional().allow('').messages({
+      "string.base": "Invoice number suffix must be a string",
+    }),
+  }).optional(),
 });
 
 module.exports = { companyUpdateValidation };

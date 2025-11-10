@@ -66,7 +66,7 @@ const generatePurchaseReport = async (req, res) => {
 // Get Sales Summary (Quick stats)
 const getSalesSummary = async (req, res) => {
   try {
-    const { companyId, startDate, endDate, customerId, status, page, limit } = req.query;
+    const { companyId, startDate, endDate, customerId, status, search, page, limit } = req.query;
     
     if (!companyId) {
       return errorResponse(res, "Company ID is required", 400);
@@ -77,6 +77,7 @@ const getSalesSummary = async (req, res) => {
       endDate,
       customerId,
       status,
+      search,
       page,
       limit
     };
@@ -99,7 +100,7 @@ const getSalesSummary = async (req, res) => {
 // Get Purchase Summary (Quick stats)
 const getPurchaseSummary = async (req, res) => {
   try {
-    const { companyId, startDate, endDate, vendorId, status, page, limit } = req.query;
+    const { companyId, startDate, endDate, vendorId, status, search, page, limit } = req.query;
     
     if (!companyId) {
       return errorResponse(res, "Company ID is required", 400);
@@ -110,6 +111,7 @@ const getPurchaseSummary = async (req, res) => {
       endDate,
       vendorId,
       status,
+      search,
       page,
       limit
     };

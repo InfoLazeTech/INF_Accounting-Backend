@@ -201,7 +201,7 @@ const generatePurchaseReport = async (companyId, filters = {}) => {
 // Get Sales Summary (Quick stats without full details)
 const getSalesSummary = async (companyId, filters = {}) => {
   try {
-    const { startDate, endDate, customerId, status, page = 1, limit = 10 } = filters;
+    const { startDate, endDate, customerId, status, search, page = 1, limit = 10 } = filters;
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     
@@ -323,21 +323,48 @@ const getSalesSummary = async (companyId, filters = {}) => {
       });
     });
 
-    // Calculate totals (before pagination for accurate totals)
-    const totalInvoiceCount = invoices.length;
-    const totalInvoiceAmount = invoices.reduce((sum, invoice) => sum + (invoice.totals?.grandTotal || 0), 0);
-    const totalPaymentCount = payments.length;
-    const totalPaymentAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+     // 🔍 Apply search filter by customerName (case-insensitive)
+    let filteredSummary = customerSummary;
+    if (search && search.trim() !== "") {
+      const searchRegex = new RegExp(search.trim(), "i");
+      filteredSummary = customerSummary.filter(c =>
+        searchRegex.test(c.customerName)
+      );
+    }
+
+    // // Calculate totals (before pagination for accurate totals)
+    // const totalInvoiceCount = invoices.length;
+    // const totalInvoiceAmount = invoices.reduce((sum, invoice) => sum + (invoice.totals?.grandTotal || 0), 0);
+    // const totalPaymentCount = payments.length;
+    // const totalPaymentAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+     // Calculate totals (based on filtered data, not full)
+    const totalInvoiceCount = filteredSummary.reduce(
+      (sum, c) => sum + c.invoiceCount,
+      0
+    );
+    const totalInvoiceAmount = filteredSummary.reduce(
+      (sum, c) => sum + c.invoiceTotal,
+      0
+    );
+    const totalPaymentCount = filteredSummary.reduce(
+      (sum, c) => sum + c.paymentCount,
+      0
+    );
+    const totalPaymentAmount = filteredSummary.reduce(
+      (sum, c) => sum + c.paymentTotal,
+      0
+    );
 
     // Calculate pagination
-    const totalCustomers = customerSummary.length;
+    const totalCustomers = filteredSummary.length;
     const skip = (pageNum - 1) * limitNum;
     const totalPages = Math.ceil(totalCustomers / limitNum);
     const hasNextPage = pageNum < totalPages;
     const hasPrevPage = pageNum > 1;
 
     // Apply pagination to customerSummary
-    const paginatedCustomerSummary = customerSummary.slice(skip, skip + limitNum);
+    const paginatedCustomerSummary = filteredSummary.slice(skip, skip + limitNum);
 
     return {
       customerSummary: paginatedCustomerSummary,
@@ -367,7 +394,7 @@ const getSalesSummary = async (companyId, filters = {}) => {
 // Get Purchase Summary (Quick stats without full details)
 const getPurchaseSummary = async (companyId, filters = {}) => {
   try {
-    const { startDate, endDate, vendorId, status, page = 1, limit = 10 } = filters;
+    const { startDate, endDate, vendorId, status, search, page = 1, limit = 10 } = filters;
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     
@@ -489,21 +516,35 @@ const getPurchaseSummary = async (companyId, filters = {}) => {
       });
     });
 
-    // Calculate totals (before pagination for accurate totals)
-    const totalBillCount = bills.length;
-    const totalBillAmount = bills.reduce((sum, bill) => sum + (bill.totals?.grandTotal || 0), 0);
-    const totalPaymentCount = payments.length;
-    const totalPaymentAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+     let filteredSummary = vendorSummary;
+    if (search && search.trim() !== "") {
+      const searchRegex = new RegExp(search.trim(), "i");
+      filteredSummary = vendorSummary.filter(v =>
+        searchRegex.test(v.vendorName)
+      );
+    }
+
+    // Calculate totals based on filtered data
+    const totalBillCount = filteredSummary.reduce((sum, v) => sum + v.billCount, 0);
+    const totalBillAmount = filteredSummary.reduce((sum, v) => sum + v.billTotal, 0);
+    const totalPaymentCount = filteredSummary.reduce((sum, v) => sum + v.paymentCount, 0);
+    const totalPaymentAmount = filteredSummary.reduce((sum, v) => sum + v.paymentTotal, 0);
+
+    // // Calculate totals (before pagination for accurate totals)
+    // const totalBillCount = bills.length;
+    // const totalBillAmount = bills.reduce((sum, bill) => sum + (bill.totals?.grandTotal || 0), 0);
+    // const totalPaymentCount = payments.length;
+    // const totalPaymentAmount = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
 
     // Calculate pagination
-    const totalVendors = vendorSummary.length;
+    const totalVendors = filteredSummary.length;
     const skip = (pageNum - 1) * limitNum;
     const totalPages = Math.ceil(totalVendors / limitNum);
     const hasNextPage = pageNum < totalPages;
     const hasPrevPage = pageNum > 1;
 
     // Apply pagination to vendorSummary
-    const paginatedVendorSummary = vendorSummary.slice(skip, skip + limitNum);
+    const paginatedVendorSummary = filteredSummary.slice(skip, skip + limitNum);
 
     return {
       vendorSummary: paginatedVendorSummary,
