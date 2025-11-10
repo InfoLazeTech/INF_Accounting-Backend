@@ -76,7 +76,8 @@ const getBankAccountById = async (req, res) => {
 
 const BankAccounts = async (req, res) => {
   try {
-    const bank = await bankService.getBankAccounts();
+    const { companyId } = req.query;
+    const bank = await bankService.getBankAccounts(companyId);
     return successResponse(res, bank, "Bank account fetched successfully", 200);
   } catch (err) {
     return errorResponse(

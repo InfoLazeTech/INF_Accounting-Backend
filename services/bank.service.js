@@ -138,8 +138,8 @@ const getBankAccountById = async (bankId) => {
   return bank;
 };
 
-const getBankAccounts = async () => {
-  const bank = await Bank.find().select("bankName accountNumber _id");
+const getBankAccounts = async (companyId) => {
+  const bank = await Bank.find({companyId:companyId}).select("bankName accountNumber _id");
   return bank;
 };
 
