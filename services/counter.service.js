@@ -12,6 +12,7 @@ class CounterService {
     PAYMENT: { module: 'payment', prefix: 'PAY' },
     RECEIPT: { module: 'receipt', prefix: 'REC' },
     BILL: { module: 'bill', prefix: 'BILL' },
+    PRODUCTION_ORDER: {module: 'production_order', prefix: "Production_Order"}
   };
 
   /**

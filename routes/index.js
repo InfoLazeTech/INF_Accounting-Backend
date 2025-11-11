@@ -16,6 +16,7 @@ const reportRoutes = require("./report.route");
 const itemConfigurationRoutes = require("./itemConfiguration.route");
 const bankRoutes = require("./bank.route");
 const transactionRoutes = require("./transaction.route");
+const productionOrderRoutes = require("./productionOrder.route");
 
 router.use("/auth", authRoutes);
 router.use("/company", companyRoutes);
@@ -31,5 +32,6 @@ router.use("/report", reportRoutes);
 router.use("/item-configuration", itemConfigurationRoutes);
 router.use("/bank", authToken, bankRoutes);
 router.use("/transaction", authToken, transactionRoutes);
+router.use("/productionOrder", authToken, productionOrderRoutes);
 
 module.exports = router;
