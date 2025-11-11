@@ -41,8 +41,8 @@ const updateBankAccount = async (req, res) => {
 
 const listBankAccounts = async (req, res) => {
   try {
-    const { search, page, limit } = req.query;
-    const banks = await bankService.listBankAccounts({ search, page, limit });
+    const { companyId, search, page, limit } = req.query;
+    const banks = await bankService.listBankAccounts({ companyId, search, page, limit });
     return successResponse(
       res,
       banks.data,

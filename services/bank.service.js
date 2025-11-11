@@ -89,7 +89,7 @@ const updateBankAccount = async (bankId, updates = {}, userId) => {
   }
 };
 
-const listBankAccounts = async ({ search, page = 1, limit = 10 }) => {
+const listBankAccounts = async ({ companyId,search, page = 1, limit = 10 }) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -101,6 +101,10 @@ const listBankAccounts = async ({ search, page = 1, limit = 10 }) => {
         { accountNumber: { $regex: search, $options: "i" } },
       ];
     }
+
+   if (companyId) {
+  query.companyId = companyId;
+}
     const skip = (page - 1) * limit;
     const banks = await Bank.find(query)
       .populate({ path: "addedBy", select: "name email" })
