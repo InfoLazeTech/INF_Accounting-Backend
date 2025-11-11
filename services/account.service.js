@@ -41,7 +41,7 @@ const listAccounts = async ({ search, page = 1, limit = 10, companyId }) => {
   session.startTransaction();
 
   try {
-    let query = companyId ? { companyId } : {};
+  let query = { companyId };
 
     if (search) {
       query.$or = [
@@ -79,8 +79,8 @@ const listAccounts = async ({ search, page = 1, limit = 10, companyId }) => {
   }
 };
 
-const getAccountById = async (accountId) => {
-  return await Account.findById(accountId)
+const getAccountById = async (accountId,companyId) => {
+return await Account.findOne({ _id: accountId, companyId })
     .populate({ path: "addedBy", select: "name email" })
     .populate({ path: "companyId", select: "companyName" });
 };

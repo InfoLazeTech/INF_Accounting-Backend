@@ -1,9 +1,10 @@
 const accountService = require("../services/account.service");
 const { successResponse, errorResponse } = require("../utils/response");
+const httpStatus = require("http-status");
+const catchAsync = require("../utils/catchAsync");
 
 const createAccount = async (req, res) => {
   try {
-    const userId = req.user.userId;
     const { companyId, parenttype, accountname, accountcode, description } = req.body;
 
     const account = await accountService.createAccount(
@@ -12,7 +13,6 @@ const createAccount = async (req, res) => {
       accountname,
       accountcode,
       description,
-      userId
     );
 
     return successResponse(res, account, "Account created successfully", 201);
@@ -30,6 +30,9 @@ const createAccount = async (req, res) => {
 const listAccounts = async (req, res) => {
   try {
     const { search, page, limit, companyId } = req.query;
+    if (!companyId) {
+    return errorResponse(res, "Company ID is required", httpStatus.BAD_REQUEST);
+  }
     const result = await accountService.listAccounts({
       search,
       page,
@@ -41,7 +44,7 @@ const listAccounts = async (req, res) => {
       res,
       result.data,
       "Accounts fetched successfully",
-      200,
+      httpStatus.OK,
       result.pagination
     );
   } catch (err) {
@@ -56,10 +59,15 @@ const listAccounts = async (req, res) => {
 const getAccountById = async (req, res) => {
   try {
     const { accountId } = req.params;
-    const account = await accountService.getAccountById(accountId);
-    if (!account) throw new Error("Account not found");
-
-    return successResponse(res, account, "Account fetched successfully", 200);
+    const { companyId } = req.query;
+    if (!companyId) {
+    return errorResponse(res, "Company ID is required", httpStatus.BAD_REQUEST);
+  }
+    const account = await accountService.getAccountById(accountId,companyId);
+  if (!account) {
+    return errorResponse(res, "Account not found", httpStatus.NOT_FOUND);
+  }
+    return successResponse(res, account, "Account fetched successfully", httpStatus.OK);
   } catch (err) {
     return errorResponse(
       res,

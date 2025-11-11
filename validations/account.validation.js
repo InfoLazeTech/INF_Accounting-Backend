@@ -36,8 +36,24 @@ const createAccountValidation = Joi.object({
   }),
   description: Joi.string().trim().optional().allow("").default(""),
 }).unknown(false);
+const listAccountsValidation = Joi.object({
+  companyId: Joi.string().trim().required().messages({
+    "string.empty": "companyId is required",
+  }),
+  search: Joi.string().optional(),
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10),
+}).unknown(false);
+
+const getAccountByIdValidation = Joi.object({
+  companyId: Joi.string().trim().required().messages({
+    "string.empty": "companyId is required",
+  }),
+}).unknown(false);
 
 
 module.exports = {
   createAccountValidation,
+  listAccountsValidation,
+  getAccountByIdValidation,
 };

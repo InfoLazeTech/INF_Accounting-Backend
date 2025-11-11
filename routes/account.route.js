@@ -4,6 +4,8 @@ const accountController = require("../controllers/account.controller");
 const validate = require("../middlewares/validate");
 const {
   createAccountValidation,
+  getAccountByIdValidation,
+  listAccountsValidation
 } = require("../validations/account.validation");
 
 router.post(
@@ -12,10 +14,10 @@ router.post(
   accountController.createAccount
 );
 
-router.get("/list", accountController.listAccounts);
+router.get("/list", validate(listAccountsValidation),accountController.listAccounts);
 
-router.get("/:accountId", accountController.getAccountById);
+router.get("/:accountId", validate(getAccountByIdValidation),accountController.getAccountById);
 
-router.get("/", accountController.getAccountsByCompany);
+router.get("/",validate(listAccountsValidation), accountController.getAccountsByCompany);
 
 module.exports = router;
