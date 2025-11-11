@@ -27,41 +27,25 @@ const createProductionOrder = async (req, res) => {
 
 const getProductionOrders = async (req, res) => {
   try {
-    const { companyId } = req.query;
-    const orders = await ProductionOrderService.fetchProductionOrders(
-      companyId
-    );
-    return successResponse(
-      res,
-      orders,
-      "production order fetched successFully",
-      200
-    );
-  } catch (error) {
-    return errorResponse(
-      res,
-      error.message || "error while fetching production order",
-      400
-    );
-  }
-};
+    const { companyId, page, limit } = req.query;
 
-const getProductionOrderById = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const order = await ProductionOrderService.fetchProductionOrderById(
-      orderId
-    );
+    const orders = await ProductionOrderService.fetchProductionOrders({
+      companyId,
+      page,
+      limit,
+    });
+
     return successResponse(
       res,
-      order,
-      "production order get successFully",
-      200
+      orders.data,
+      "Production orders fetched successfully",
+      200,
+      orders.pagination
     );
   } catch (error) {
     return errorResponse(
       res,
-      error.message || "error while get production order",
+      error.message || "Error while fetching production orders",
       400
     );
   }
@@ -70,5 +54,4 @@ const getProductionOrderById = async (req, res) => {
 module.exports = {
   createProductionOrder,
   getProductionOrders,
-  getProductionOrderById,
 };
