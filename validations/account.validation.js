@@ -51,9 +51,38 @@ const getAccountByIdValidation = Joi.object({
   }),
 }).unknown(false);
 
+// const updateAccountValidation = Joi.object({
+// parenttype: Joi.string().valid(...parentTypeEnum).optional(),
+//   accountname: Joi.string().trim().optional(),
+//   accountcode: Joi.string().trim().optional(),
+//   description: Joi.string().trim().optional().allow(""),
+// }).unknown(true)
+
+// const updateAccountParamsValidation = Joi.object({
+//   accountId: Joi.string().trim().required().messages({
+//     "string.empty": "accountId is required in URL",
+//   }),
+// }).unknown(false);
+
+const updateAccountValidation = Joi.object({
+  parenttype: Joi.string().optional(),
+  accountname: Joi.string().optional(),
+  accountcode: Joi.string().optional(),
+  description: Joi.string().optional(),
+}).or("parenttype","accountname", "accountcode", "description").unknown(false);
+
+const deleteAccountValidation = Joi.object({
+  accountId: Joi.string().trim().required().messages({
+    "string.empty": "accountId is required in URL",
+  }),
+}).unknown(false);
+
 
 module.exports = {
   createAccountValidation,
   listAccountsValidation,
   getAccountByIdValidation,
+ updateAccountValidation,
+  // updateAccountParamsValidation,
+  deleteAccountValidation,
 };

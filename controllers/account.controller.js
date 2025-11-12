@@ -35,8 +35,8 @@ const listAccounts = async (req, res) => {
   }
     const result = await accountService.listAccounts({
       search,
-      page,
-      limit,
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
       companyId,
     });
 
@@ -95,10 +95,36 @@ const getAccountsByCompany = async (req, res) => {
     );
   }
 };
+const updateAccount = async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    const updateData = req.body;
+     const userId = req.user?._id|| null;
+
+    const account = await accountService.updateAccount(accountId, updateData, userId);
+    return successResponse(res, account, "Account updated successfully");
+  } catch (err) {
+    const status = err.message === "Account not found" ? httpStatus.NOT_FOUND : httpStatus.BAD_REQUEST;
+    return errorResponse(res, err.message || "Error while updating account", status);
+  }
+};
+const deleteAccount = async (req, res) => {
+  try {
+    const { accountId } = req.params;
+
+    await accountService.deleteAccount(accountId);
+    return successResponse(res, null, "Account deleted successfully");
+  } catch (err) {
+    const status = err.message === "Account not found" ? httpStatus.NOT_FOUND : httpStatus.INTERNAL_SERVER_ERROR;
+    return errorResponse(res, err.message || "Error while deleting account", status);
+  }
+};
 
 module.exports = {
   createAccount,
   listAccounts,
   getAccountById,
+  deleteAccount,
+  updateAccount,
   getAccountsByCompany,
 };
