@@ -3,14 +3,17 @@ const { successResponse, errorResponse } = require("../utils/response");
 
 const addTransaction = async (req, res) => {
   try {
-    const { bankId, description, amount, type, date, companyId } = req.body;
+    const { bankId, description, amount, type, date, companyId, parentId, childrenId, customerVendorId } = req.body;
     const transaction = await transactionService.addTransaction(
       bankId,
       description,
       amount,
       type,
       date,
-      companyId
+      companyId,
+      customerVendorId,
+      parentId,
+      childrenId
     );
     return successResponse(
       res,
@@ -30,13 +33,14 @@ const addTransaction = async (req, res) => {
 const updateTransaction = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { description, amount, type, date } = req.body;
+    const { description, amount, type, date, parentId, childrenId, customerVendorId } = req.body;
     const transaction = await transactionService.updateTransaction(
       transactionId,
       description,
       amount,
       type,
-      date
+      date,
+      parentId, childrenId, customerVendorId
     );
     return successResponse(
       res,

@@ -21,6 +21,10 @@ const transactionSchema = new mongoose.Schema(
       required: true,
     },
     balance: { type: Number, default: 0 },
+    customerVendorId: { type: mongoose.Schema.Types.ObjectId, ref: "CustomerVendor" },
+    parentId: { type: mongoose.Schema.Types.ObjectId, ref: "Account" },
+    childrenId: { type: mongoose.Schema.Types.ObjectId, ref: "Account" },
+
   },
   { timestamps: true }
 );

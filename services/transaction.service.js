@@ -1,6 +1,7 @@
 const Transactions = require("../models/transaction.model");
 const Bank = require("../models/bank.model");
 const { default: mongoose } = require("mongoose");
+// const { getCustomerVendorById } = require("../../INF_Accounting-Frontend/src/redux/slice/customer/customerVendorSlice");
 
 const addTransaction = async (
   bankId,
@@ -8,7 +9,10 @@ const addTransaction = async (
   amount,
   type,
   date,
-  companyId
+  companyId,
+  customerVendorId,
+  parentId,
+  childrenId,
 ) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -40,6 +44,9 @@ const addTransaction = async (
       type,
       balance: newBalance,
       date: date || new Date(),
+      customerVendorId: customerVendorId || null,
+      parentId: parentId,
+      childrenId: childrenId
     });
 
     if (bank) {
@@ -60,7 +67,7 @@ const addTransaction = async (
 };
 
 const updateTransaction = async (
-  transactionId,description, amount, type, date
+  transactionId, description, amount, type, date
 ) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -202,25 +209,25 @@ const getTransactionsByBankIdOLD = async (
   startDate,
   endDate
 ) => {
-let start, end;
+  let start, end;
 
-if (startDate) {
-  start = new Date(startDate);
-} else {
-  // Default: first day of the current month
-  const now = new Date();
-  start = new Date(now.getFullYear(), now.getMonth(), 1);
-}
+  if (startDate) {
+    start = new Date(startDate);
+  } else {
+    // Default: first day of the current month
+    const now = new Date();
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+  }
 
-if (endDate) {
-  end = new Date(endDate);
-  // Include entire day for endDate
-  end.setHours(23, 59, 59, 999);
-} else {
-  // Default: last day of the current month
-  const now = new Date();
-  end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-}
+  if (endDate) {
+    end = new Date(endDate);
+    // Include entire day for endDate
+    end.setHours(23, 59, 59, 999);
+  } else {
+    // Default: last day of the current month
+    const now = new Date();
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  }
   const bank = await Bank.findById(bankId).lean();
 
   const prevTransactions = await Transactions.find({
@@ -256,9 +263,9 @@ if (endDate) {
   const closingBalance = runningBalance;
   const bankName = bank.bankName;
   const BankAccountNo = bank.accountNumber
-  const bankData = { openingBalance, closingBalance, bankName, BankAccountNo};
+  const bankData = { openingBalance, closingBalance, bankName, BankAccountNo };
   return {
-   bankData:bankData,
+    bankData: bankData,
     transactions: dynamicTransactions,
   };
 };
@@ -269,32 +276,32 @@ const getTransactionsByBankId = async (
   startDate,
   endDate
 ) => {
-let start, end;
+  let start, end;
 
-if (startDate) {
-  start = new Date(startDate);
-} else {
-  // Default: first day of the current month
-  const now = new Date();
-  start = new Date(now.getFullYear(), now.getMonth(), 1);
-}
+  if (startDate) {
+    start = new Date(startDate);
+  } else {
+    // Default: first day of the current month
+    const now = new Date();
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+  }
 
-if (endDate) {
-  end = new Date(endDate);
-  // Include entire day for endDate
-  end.setHours(23, 59, 59, 999);
-} else {
-  // Default: last day of the current month
-  const now = new Date();
-  end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-}
+  if (endDate) {
+    end = new Date(endDate);
+    // Include entire day for endDate
+    end.setHours(23, 59, 59, 999);
+  } else {
+    // Default: last day of the current month
+    const now = new Date();
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  }
   const bank = await Bank.findById(bankId).lean();
 
   if (!bank) throw new Error("Bank not found");
 
   const initialOpening = bank.openingBalance || 0;
 
-const allTransactions = await Transactions.find({
+  const allTransactions = await Transactions.find({
     bankId,
     companyId,
     date: { $lte: end },
@@ -302,27 +309,27 @@ const allTransactions = await Transactions.find({
     .sort({ date: 1 })
     .lean();
 
-    const prevTransactions = allTransactions.filter(tx => tx.date < start);
+  const prevTransactions = allTransactions.filter(tx => tx.date < start);
   const currentTransactions = allTransactions.filter(tx => tx.date >= start);
 
   const openingBalance = prevTransactions.reduce((balance, tx) => {
     return tx.type === "credit" ? balance + tx.amount :
-           tx.type === "debit"  ? balance - tx.amount : balance;
+      tx.type === "debit" ? balance - tx.amount : balance;
   }, initialOpening);
 
-    let runningBalance = openingBalance;
-      const dynamicTransactions = currentTransactions.map(tx => {
+  let runningBalance = openingBalance;
+  const dynamicTransactions = currentTransactions.map(tx => {
     runningBalance += tx.type === "credit" ? tx.amount :
-                      tx.type === "debit"  ? -tx.amount : 0;
+      tx.type === "debit" ? -tx.amount : 0;
     return { ...tx, balance: runningBalance };
   });
 
-   const closingBalance = runningBalance;
+  const closingBalance = runningBalance;
   const bankName = bank.bankName;
   const BankAccountNo = bank.accountNumber
-  const bankData = { openingBalance, closingBalance, bankName, BankAccountNo};
+  const bankData = { openingBalance, closingBalance, bankName, BankAccountNo };
   return {
-   bankData:bankData,
+    bankData: bankData,
     transactions: dynamicTransactions,
   };
 };

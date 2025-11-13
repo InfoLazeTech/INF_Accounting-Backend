@@ -1,7 +1,7 @@
 const Joi = require("joi");
 
 const addTransactionValidation = Joi.object({
- bankId: Joi.string().trim().required().messages({
+  bankId: Joi.string().trim().required().messages({
     "string.empty": "Bank ID is required",
   }),
   description: Joi.string().allow("").optional(),
@@ -19,6 +19,9 @@ const addTransactionValidation = Joi.object({
   companyId: Joi.string().trim().required().messages({
     "string.empty": "companyId is required",
   }),
+  parentId: Joi.string().trim().optional(),
+  childrenId: Joi.string().optional(),
+  customerVendorId: Joi.string().trim().optional(),
 }).unknown(false);
 
 const updateTransactionValidation = Joi.object({
@@ -26,7 +29,10 @@ const updateTransactionValidation = Joi.object({
   amount: Joi.number().positive().optional(),
   type: Joi.string().valid("credit", "debit").optional(),
   date: Joi.date().optional(),
-}).or("description", "amount", "type", "date").unknown(false);; // must include at least one field
+  parentId: Joi.string().optional(),
+  childrenId: Joi.string().optional(),
+  customerVendorId: Joi.string().optional(),
+}).or("description", "amount", "type", "date", "parentId", "childrenId", "customerVendorId").unknown(false);; // must include at least one field
 
 
 module.exports = {
