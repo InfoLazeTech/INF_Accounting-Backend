@@ -29,14 +29,12 @@ const createAccount = async (req, res) => {
 
 const listAccounts = async (req, res) => {
   try {
-    const { search, page, limit, companyId } = req.query;
+    const { search, companyId } = req.query;
     if (!companyId) {
-    return errorResponse(res, "Company ID is required", httpStatus.BAD_REQUEST);
-  }
+      return errorResponse(res, "Company ID is required", httpStatus.BAD_REQUEST);
+    }
     const result = await accountService.listAccounts({
       search,
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
       companyId,
     });
 
@@ -45,7 +43,7 @@ const listAccounts = async (req, res) => {
       result.data,
       "Accounts fetched successfully",
       httpStatus.OK,
-      result.pagination
+      { total: result.total }
     );
   } catch (err) {
     return errorResponse(
@@ -61,12 +59,12 @@ const getAccountById = async (req, res) => {
     const { accountId } = req.params;
     const { companyId } = req.query;
     if (!companyId) {
-    return errorResponse(res, "Company ID is required", httpStatus.BAD_REQUEST);
-  }
-    const account = await accountService.getAccountById(accountId,companyId);
-  if (!account) {
-    return errorResponse(res, "Account not found", httpStatus.NOT_FOUND);
-  }
+      return errorResponse(res, "Company ID is required", httpStatus.BAD_REQUEST);
+    }
+    const account = await accountService.getAccountById(accountId, companyId);
+    if (!account) {
+      return errorResponse(res, "Account not found", httpStatus.NOT_FOUND);
+    }
     return successResponse(res, account, "Account fetched successfully", httpStatus.OK);
   } catch (err) {
     return errorResponse(
@@ -99,7 +97,7 @@ const updateAccount = async (req, res) => {
   try {
     const { accountId } = req.params;
     const updateData = req.body;
-     const userId = req.user?._id|| null;
+    const userId = req.user?._id || null;
 
     const account = await accountService.updateAccount(accountId, updateData, userId);
     return successResponse(res, account, "Account updated successfully");

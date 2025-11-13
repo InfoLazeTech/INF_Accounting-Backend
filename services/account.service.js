@@ -37,11 +37,9 @@ const createAccount = async (
 
 
 const listAccounts = async ({ search, page = 1, limit = 10, companyId }) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     let query = { companyId };
+
     if (search && search.trim()) {
       const regex = new RegExp(search.trim(), "i");
       query.$or = [
@@ -49,39 +47,48 @@ const listAccounts = async ({ search, page = 1, limit = 10, companyId }) => {
         { accountcode: regex },
       ];
     }
+    const accounts = await Account.find(query)
+      .populate({ path: "addedBy", select: "name email" })
+      .populate({ path: "companyId", select: "companyName" })
+      .sort({ createdAt: -1 });
 
-    const skip = (page - 1) * limit;
-  const [accounts, total] = await Promise.all([
-      Account.find(query)
-        .populate({ path: "addedBy", select: "name email" })
-        .populate({ path: "companyId", select: "companyName" })
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .session(session),
+    const grouped = {};
+    for (const acc of accounts) {
+      const parent = acc.parenttype;
 
-      Account.countDocuments(query).session(session),
-    ]);
-    await session.commitTransaction();
-    session.endSession();
+      if (!grouped[parent]) {
+        grouped[parent] = {
+          id: acc._id.toString(),
+          parentType: parent,
+          accountName: parent,
+          children: [],
+        };
+      }
+      grouped[parent].children.push({
+        id: acc._id,
+        accountName: acc.accountname,
+        accountCode: acc.accountcode,
+        description: acc.description,
+        companyId: acc.companyId?._id,
+        // companyName: acc.companyId?.companyName,
+        createdAt: acc.createdAt,
+        updatedAt: acc.updatedAt,
+        parentType: acc.parenttype,
+        // children: [],
+      });
+    }
+    const hierarchicalData = Object.values(grouped);
 
     return {
-      data: accounts,
-      pagination: {
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page < Math.ceil(total / limit),
-        hasPrevPage: page > 1,
-      },
+      data: hierarchicalData,
+      total: accounts.length,
     };
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    console.error("Error listing accounts:", error);
     throw error;
   }
 };
+
 
 const getAccountById = async (accountId, companyId) => {
   return await Account.findOne({ _id: accountId, companyId })
@@ -97,7 +104,7 @@ const getAccountsByCompany = async (companyId) => {
 
 
 const updateAccount = async (accountId, updatedData) => {
-console.log("account",updatedData);
+  console.log("account", updatedData);
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -105,13 +112,13 @@ console.log("account",updatedData);
   try {
     const account = await Account.findByIdAndUpdate(
       accountId,
-      { $set:updatedData},
+      { $set: updatedData },
       { new: true, session }
-  );
+    );
 
-  await account.save({ session });
+    await account.save({ session });
 
-      await session.commitTransaction();
+    await session.commitTransaction();
     session.endSession();
 
     return account;
