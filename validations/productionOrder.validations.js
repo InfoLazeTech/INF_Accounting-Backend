@@ -6,7 +6,7 @@ const createProductionOrderValidation = Joi.object({
     "string.empty": "companyId cannot be empty",
   }),
 
-  date: Joi.date().required().messages({
+  date: Joi.date().optional().messages({
     "any.required": "date is required",
     "date.base": "date must be a valid date",
   }),
