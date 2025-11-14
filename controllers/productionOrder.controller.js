@@ -51,7 +51,29 @@ const getProductionOrders = async (req, res) => {
   }
 };
 
+const deleteProductionOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await ProductionOrderService.deleteProductionOrder(orderId);
+    return successResponse(res, null, "ProductionOrder Deleted successFully", 200)
+  } catch (error) {
+    return errorResponse(res, error.message || "Error while Deleting ProductionOrder", 400);
+  }
+};
+
+const getProductionOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await ProductionOrderService.fetchProductionOrder(orderId);
+    return successResponse(res, order, "ProductionOrder Fetched successFully", 200)
+  } catch (error) {
+    return errorResponse(res, error.message || "Error while Fetching ProductionOrder", 400);
+  }
+};
+
 module.exports = {
   createProductionOrder,
   getProductionOrders,
+  deleteProductionOrder,
+  getProductionOrder
 };

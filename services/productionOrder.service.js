@@ -45,8 +45,6 @@ const createProductionOrder = async (
 
     return order;
   } catch (error) {
-    console.log("error:", error);
-
     await session.abortTransaction();
     session.endSession();
     throw error;
@@ -91,7 +89,87 @@ const fetchProductionOrders = async ({ companyId, page = 1, limit = 10 }) => {
   }
 };
 
+const deleteProductionOrder = async (orderId) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const order = await ProductionOrder.findById(orderId).session(session);
+
+    if (!order) {
+      throw new Error("Production order not found");
+    }
+
+    for (const material of order.rawMaterials) {
+      await addStock({
+        companyId: order.companyId,
+        itemId: material.itemId,
+        quantity: material.quantity,
+        session,
+      });
+    }
+
+    for (const fg of order.finishedGoods) {
+      await removeStock({
+        companyId: order.companyId,
+        itemId: fg.itemId,
+        quantity: fg.quantity,
+        session,
+      });
+    }
+
+    await ProductionOrder.deleteOne({ _id: orderId }).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return order;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
+const fetchProductionOrder = async (orderId) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const order = await ProductionOrder.findById(orderId)
+      .session(session)
+      .populate({
+        path: "rawMaterials.itemId",
+        select:
+          "name sku availableStock description category unitOfMeasure purchasePrice salePrice taxRate openingStock reorderLevel itemId",
+        populate: {
+          path: "category",
+          select: "name",
+        },
+      })
+      .populate({
+        path: "finishedGoods.itemId",
+        select:
+          "name sku availableStock description category unitOfMeasure purchasePrice salePrice taxRate openingStock reorderLevel itemId",
+        populate: {
+          path: "category",
+          select: "name",
+        },
+      });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return order;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
 module.exports = {
   createProductionOrder,
   fetchProductionOrders,
+  deleteProductionOrder,
+  fetchProductionOrder
 };

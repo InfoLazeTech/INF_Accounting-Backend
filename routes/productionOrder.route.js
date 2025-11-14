@@ -13,5 +13,13 @@ router.get(
   "/getProductionOrders",
   productionOrderController.getProductionOrders
 );
+router.delete(
+  "/deleteProductionOrder/:orderId",
+  productionOrderController.deleteProductionOrder
+)
+router.get(
+  "/getProductionOrder/:orderId",
+  productionOrderController.getProductionOrder
+)
 
 module.exports = router;
