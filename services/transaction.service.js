@@ -307,6 +307,9 @@ const getTransactionsByBankId = async (
     date: { $lte: end },
   })
     .sort({ date: 1 })
+    .populate("customerVendorId", "companyName contactPerson")
+    .populate("parentId", "accountname parenttype")
+    .populate("childrenId", "accountname")
     .lean();
 
   const prevTransactions = allTransactions.filter(tx => tx.date < start);
