@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Item = require("../models/itemMaster.model");
 
 // Basic stock operations
-const addStock = async ({ companyId, itemId, quantity }) => {
+const addStockold = async ({ companyId, itemId, quantity }) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -10,12 +10,12 @@ const addStock = async ({ companyId, itemId, quantity }) => {
     const item = await Item.findOne({
       _id: new mongoose.Types.ObjectId(itemId),
       companyId: new mongoose.Types.ObjectId(companyId),
-    }).session(session); 
+    }).session(session);
 
     if (!item) throw new Error("Item not found for this company");
 
     item.availableStock += quantity;
-    await item.save({ session }); 
+    await item.save({ session });
 
     await session.commitTransaction();
     session.endSession();
@@ -28,7 +28,7 @@ const addStock = async ({ companyId, itemId, quantity }) => {
   }
 };
 
-const removeStock = async ({ companyId, itemId, quantity }) => {
+const removeStockold = async ({ companyId, itemId, quantity }) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -54,6 +54,78 @@ const removeStock = async ({ companyId, itemId, quantity }) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    throw error;
+  }
+};
+
+const addStock = async ({ companyId, itemId, quantity, session }) => {
+  let ownSession = false;
+
+  if (!session) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    ownSession = true;
+  }
+
+  try {
+    const item = await Item.findOne({
+      _id: new mongoose.Types.ObjectId(itemId),
+      companyId: new mongoose.Types.ObjectId(companyId),
+    }).session(session);
+
+    if (!item) throw new Error("Item not found for this company");
+
+    item.availableStock += quantity;
+    await item.save({ session, validateBeforeSave: false });
+
+    if (ownSession) {
+      await session.commitTransaction();
+      session.endSession();
+    }
+
+    return item;
+  } catch (error) {
+    if (ownSession) {
+      await session.abortTransaction();
+      session.endSession();
+    }
+    throw error;
+  }
+};
+
+const removeStock = async ({ companyId, itemId, quantity, session }) => {
+  let ownSession = false;
+
+  if (!session) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    ownSession = true;
+  }
+
+  try {
+    const item = await Item.findOne({
+      _id: new mongoose.Types.ObjectId(itemId),
+      companyId: new mongoose.Types.ObjectId(companyId),
+    }).session(session);
+
+    if (!item) throw new Error("Item not found for this company");
+    if (item.availableStock < quantity)
+      throw new Error("Not enough stock available");
+
+    item.availableStock -= quantity;
+    await item.save({ session, validateBeforeSave: false });
+
+    if (ownSession) {
+      await session.commitTransaction();
+      session.endSession();
+    }
+
+    return item;
+  } catch (error) {
+    if (ownSession) {
+      await session.abortTransaction();
+      session.endSession();
+    }
     throw error;
   }
 };
@@ -104,7 +176,9 @@ const updateStockForInvoice = async (invoiceData) => {
       if (!stockItem) throw new Error(`Item not found: ${item.itemId}`);
 
       if (stockItem.availableStock < item.quantity) {
-        throw new Error(`Insufficient stock for item ${stockItem.name}. Available: ${stockItem.availableStock}, Required: ${item.quantity}`);
+        throw new Error(
+          `Insufficient stock for item ${stockItem.name}. Available: ${stockItem.availableStock}, Required: ${item.quantity}`
+        );
       }
 
       stockItem.availableStock -= item.quantity;
@@ -138,7 +212,9 @@ const handleBillEdit = async (oldItems, newItems, companyId) => {
       if (!stockItem) throw new Error(`Item not found: ${oldItem.itemId}`);
 
       if (stockItem.availableStock < oldItem.quantity) {
-        throw new Error(`Insufficient stock to reverse for item ${stockItem.name}. Available: ${stockItem.availableStock}, Required: ${oldItem.quantity}`);
+        throw new Error(
+          `Insufficient stock to reverse for item ${stockItem.name}. Available: ${stockItem.availableStock}, Required: ${oldItem.quantity}`
+        );
       }
 
       stockItem.availableStock -= oldItem.quantity;
@@ -196,7 +272,9 @@ const handleInvoiceEdit = async (oldItems, newItems, companyId) => {
       if (!stockItem) throw new Error(`Item not found: ${newItem.itemId}`);
 
       if (stockItem.availableStock < newItem.quantity) {
-        throw new Error(`Insufficient stock for item ${stockItem.name}. Available: ${stockItem.availableStock}, Required: ${newItem.quantity}`);
+        throw new Error(
+          `Insufficient stock for item ${stockItem.name}. Available: ${stockItem.availableStock}, Required: ${newItem.quantity}`
+        );
       }
 
       stockItem.availableStock -= newItem.quantity;
@@ -217,26 +295,33 @@ const getLowStockItems = async (companyId) => {
   return await Item.find({
     companyId,
     isActive: true,
-    $expr: { $lte: ["$availableStock", "$reorderLevel"] }
-  }).populate('category', 'name');
+    $expr: { $lte: ["$availableStock", "$reorderLevel"] },
+  }).populate("category", "name");
 };
 
 // Get stock summary for a company
 const getStockSummary = async (companyId) => {
   return await Item.aggregate([
-    { $match: { companyId: new mongoose.Types.ObjectId(companyId), isActive: true } },
+    {
+      $match: {
+        companyId: new mongoose.Types.ObjectId(companyId),
+        isActive: true,
+      },
+    },
     {
       $group: {
         _id: null,
         totalItems: { $sum: 1 },
-        totalStockValue: { $sum: { $multiply: ["$availableStock", "$purchasePrice"] } },
+        totalStockValue: {
+          $sum: { $multiply: ["$availableStock", "$purchasePrice"] },
+        },
         lowStockItems: {
           $sum: {
-            $cond: [{ $lte: ["$availableStock", "$reorderLevel"] }, 1, 0]
-          }
-        }
-      }
-    }
+            $cond: [{ $lte: ["$availableStock", "$reorderLevel"] }, 1, 0],
+          },
+        },
+      },
+    },
   ]);
 };
 
@@ -248,5 +333,5 @@ module.exports = {
   handleBillEdit,
   handleInvoiceEdit,
   getLowStockItems,
-  getStockSummary
+  getStockSummary,
 };

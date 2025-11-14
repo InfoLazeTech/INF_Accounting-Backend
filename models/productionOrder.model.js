@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const CounterService = require("../services/counter.service");
-const Item = require("./itemMaster.model");
 
 const productionOrderSchema = new mongoose.Schema(
   {
@@ -46,31 +45,6 @@ productionOrderSchema.pre("save", async function (next) {
     }
   }
   next();
-});
-
-// After save — auto update stock
-productionOrderSchema.post("save", async function (doc) {
-  try {
-    // Decrease stock of raw materials
-    for (const material of doc.rawMaterials) {
-      await Item.findByIdAndUpdate(
-        material.itemId,
-        { $inc: { availableStock: -material.quantity } },
-        { new: true }
-      );
-    }
-
-    // Increase stock of finished goods
-    for (const fg of doc.finishedGoods) {
-      await Item.findByIdAndUpdate(
-        fg.itemId,
-        { $inc: { availableStock: fg.quantity } },
-        { new: true }
-      );
-    }
-  } catch (error) {
-    console.error("Error updating stock in production order:", error);
-  }
 });
 
 module.exports = mongoose.model("ProductionOrder", productionOrderSchema);

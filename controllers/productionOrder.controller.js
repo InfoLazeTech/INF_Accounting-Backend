@@ -27,48 +27,53 @@ const createProductionOrder = async (req, res) => {
 
 const getProductionOrders = async (req, res) => {
   try {
-    const { companyId } = req.query;
-    const orders = await ProductionOrderService.fetchProductionOrders(
-      companyId
-    );
+    const { companyId, page, limit } = req.query;
+
+    const orders = await ProductionOrderService.fetchProductionOrders({
+      companyId,
+      page,
+      limit,
+    });
+
     return successResponse(
       res,
-      orders,
-      "production order fetched successFully",
-      200
+      orders.data,
+      "Production orders fetched successfully",
+      200,
+      orders.pagination
     );
   } catch (error) {
     return errorResponse(
       res,
-      error.message || "error while fetching production order",
+      error.message || "Error while fetching production orders",
       400
     );
   }
 };
 
-const getProductionOrderById = async (req, res) => {
+const deleteProductionOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const order = await ProductionOrderService.fetchProductionOrderById(
-      orderId
-    );
-    return successResponse(
-      res,
-      order,
-      "production order get successFully",
-      200
-    );
+    const order = await ProductionOrderService.deleteProductionOrder(orderId);
+    return successResponse(res, null, "ProductionOrder Deleted successFully", 200)
   } catch (error) {
-    return errorResponse(
-      res,
-      error.message || "error while get production order",
-      400
-    );
+    return errorResponse(res, error.message || "Error while Deleting ProductionOrder", 400);
+  }
+};
+
+const getProductionOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await ProductionOrderService.fetchProductionOrder(orderId);
+    return successResponse(res, order, "ProductionOrder Fetched successFully", 200)
+  } catch (error) {
+    return errorResponse(res, error.message || "Error while Fetching ProductionOrder", 400);
   }
 };
 
 module.exports = {
   createProductionOrder,
   getProductionOrders,
-  getProductionOrderById,
+  deleteProductionOrder,
+  getProductionOrder
 };

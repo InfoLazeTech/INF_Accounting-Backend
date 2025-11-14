@@ -19,8 +19,8 @@ const companyUpdateValidation = Joi.object({
     pinCode: Joi.string().optional(),
     faxNumber: Joi.string().optional(),
   }).optional(),
-  logo: Joi.string().optional(),
-  signature: Joi.string().optional(),
+  logo: Joi.string().allow(null, "").optional(),
+  signature: Joi.string().allow(null, "").optional(),
   invoiceNumberConfig: Joi.object({
     prefix: Joi.string().optional().allow('').messages({
       "string.base": "Invoice number prefix must be a string",

@@ -89,7 +89,7 @@ const updateBankAccount = async (bankId, updates = {}, userId) => {
   }
 };
 
-const listBankAccounts = async ({ companyId,search, page = 1, limit = 10 }) => {
+const listBankAccounts = async ({ companyId, search, page = 1, limit = 10 }) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
